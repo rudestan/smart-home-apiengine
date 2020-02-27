@@ -1,0 +1,276 @@
+{
+  "devices": {
+    "78:77:77:77:77:77": {
+      "name": "SC1 Switch",
+      "ip": "192.168.1.16",
+      "mac": "78:77:77:77:77:77",
+      "key": "65b7cf5b51557b1ffd13811147a51dab",
+      "id": "01000000",
+      "device_type": "0x7547",
+      "enabled": true
+    },
+    "78:78:78:78:78:78": {
+      "name": "Lamp in living room",
+      "ip": "192.168.1.22",
+      "mac": "78:78:78:78:78:78",
+      "key": "00000000000000000000000000000000",
+      "id": "01000000",
+      "device_type": "0x2733",
+      "enabled": true
+    },
+    "78:88:88:88:88:88": {
+      "name": "RM3 Pro Blaster",
+      "ip": "192.168.1.4",
+      "mac": "78:88:88:88:88:88",
+      "key": "5ce54c465ce54c469258c335c9cb3925",
+      "id": "04000000",
+      "device_type": "0x279d",
+      "enabled": true
+    }
+  },
+  "intents": {
+    "TurnOnIntent": {
+      "name": "TurnOnIntent",
+      "slots": {
+        "action": {
+          "name": "action",
+          "values": {
+            "off": {
+              "name": "off",
+              "synonyms": [
+                "turn off",
+                "switch off",
+                "power off",
+                "make off",
+                "set off"
+              ]
+            },
+            "on": {
+              "name": "on",
+              "synonyms": [
+                "turn on",
+                "switch on",
+                "power on",
+                "make on",
+                "set on"
+              ]
+            }
+          }
+        },
+        "item": {
+          "name": "item",
+          "values": {
+            "audio": {
+              "name": "audio",
+              "synonyms": null
+            },
+            "lamp": {
+              "name": "lamp",
+              "synonyms": null
+            },
+            "light": {
+              "name": "light",
+              "synonyms": null
+            },
+            "socket": {
+              "name": "socket",
+              "synonyms": null
+            },
+            "sound": {
+              "name": "sound",
+              "synonyms": null
+            },
+            "test": {
+              "name": "test",
+              "synonyms": null
+            },
+            "tv": {
+              "name": "tv",
+              "synonyms": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "commands": {
+    "Turn off Lamp": {
+      "device_id": "78:78:78:78:78:78",
+      "name": "Turn off Lamp",
+      "code": "00",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "off"
+            },
+            "item": {
+              "name": "item",
+              "value": "socket"
+            }
+          }
+        }
+      ]
+    },
+    "Turn off Top light": {
+      "device_id": "78:77:77:77:77:77",
+      "name": "Turn off Top light",
+      "code": "00",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "off"
+            },
+            "item": {
+              "name": "item",
+              "value": "light"
+            }
+          }
+        }
+      ]
+    },
+    "Turn on Lamp": {
+      "device_id": "78:78:78:78:78:78",
+      "name": "Turn on Lamp",
+      "code": "01",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "on"
+            },
+            "item": {
+              "name": "item",
+              "value": "socket"
+            }
+          }
+        }
+      ]
+    },
+    "Turn on TV": {
+      "device_id": "78:88:88:88:88:88",
+      "name": "Turn on TV",
+      "code": "98f79sdf79879f8s7f98sd89f7sd98f789sdf7",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "on"
+            },
+            "item": {
+              "name": "item",
+              "value": "tv"
+            }
+          }
+        },
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "off"
+            },
+            "item": {
+              "name": "item",
+              "value": "tv"
+            }
+          }
+        }
+      ]
+    },
+    "Turn on Top light": {
+      "device_id": "78:77:77:77:77:77",
+      "name": "Turn on Top light",
+      "code": "01",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "on"
+            },
+            "item": {
+              "name": "item",
+              "value": "light"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "On And Off socket": {
+      "name": "On And Off socket",
+      "sequence": [
+        {
+          "name": "Turn off Lamp",
+          "delay": 2
+        },
+        {
+          "name": "Turn on Lamp",
+          "delay": 0
+        }
+      ],
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "on"
+            },
+            "item": {
+              "name": "item",
+              "value": "test"
+            }
+          }
+        }
+      ]
+    },
+    "On and Off TVs": {
+      "name": "scenario 1",
+      "sequence": [
+        {
+          "name": "Turn on TV",
+          "delay": 5
+        },
+        {
+          "name": "Turn on TV",
+          "delay": 0
+        }
+      ],
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "on"
+            },
+            "item": {
+              "name": "item",
+              "value": "projector"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "groups": {
+    "Living room lights": {
+      "name": "Living room lights",
+      "commands": [],
+      "scenarios": []
+    }
+  }
+}
