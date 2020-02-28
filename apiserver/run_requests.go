@@ -23,7 +23,7 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request)  {
 	alexaRequestIntent, err := alexakit.NewAlexaRequestIntent(r)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, getResponse("error", "Failed to accept POST body of alexa intent"))
+		_, ioErr := io.WriteString(w, NewResponse("error", "Failed to accept POST body of alexa intent"))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -38,7 +38,7 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request)  {
 
 	if err != nil {
 		_, ioErr := io.WriteString(w,
-			getResponse("error", "Failed to create a simple alexa request intent"))
+			NewResponse("error", "Failed to create a simple alexa request intent"))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -57,7 +57,7 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request)  {
 		}
 	}()
 
-	io.WriteString(w, getResponse("success", "intent executed"))
+	io.WriteString(w, NewResponse("success", "intent executed"))
 }
 
 // ActionRunCommand api action that accepts command id and tries to execute matched command
@@ -72,7 +72,7 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request)  {
 	cmd, err := devicecontrol.FindCommandById(commandId)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, getResponse("error",
+		_, ioErr := io.WriteString(w, NewResponse("error",
 			fmt.Sprintf("Command with id %s was not found", commandId)))
 
 		if ioErr != nil {
@@ -92,7 +92,7 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request)  {
 		}
 	}()
 
-	_, err = io.WriteString(w, getResponse("success", "command executed"))
+	_, err = io.WriteString(w, NewResponse("success", "command executed"))
 
 	if err != nil {
 		log.Println(err)
@@ -110,7 +110,7 @@ func ActionRunScenario(w http.ResponseWriter, r *http.Request)  {
 	scenario, err := devicecontrol.FindScenarioByName(scenarioId)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, getResponse("error",
+		_, ioErr := io.WriteString(w, NewResponse("error",
 			fmt.Sprintf("Scenario with id %s was not found", scenarioId)))
 
 		if ioErr != nil {
@@ -130,7 +130,7 @@ func ActionRunScenario(w http.ResponseWriter, r *http.Request)  {
 		}
 	}()
 
-	_, err = io.WriteString(w, getResponse("success", "scenario executed"))
+	_, err = io.WriteString(w, NewResponse("success", "scenario executed"))
 
 	if err != nil {
 		log.Println(err)

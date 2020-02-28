@@ -7,7 +7,7 @@ type ApiResultResponse struct {
 	Message string `json:"message"`
 }
 
-func getResponse(result string, msg string) string  {
+func NewResponse(result string, msg string) string  {
 	resp := ApiResultResponse{Result:result, Message:msg}
 	jsonResp, err := json.Marshal(resp)
 
