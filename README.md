@@ -14,9 +14,9 @@ Web server has the following end points:
 can handle Alexa requests directly (HTTPS mode with valid certificate and key required by Amazon Alexa API) using
 this endpoint, or this request can be proxified using RabbitMQ by rmqproxy, alexalistener tools from this project.
 
-####Usecases
+#### Usecases
 
-#####Standalone HTTP
+##### Standalone HTTP
 
 This application runs built in web server and to run it the only thing you need is configuration file with needed
 devices and commands. 
@@ -27,7 +27,7 @@ To start serving requests and control the devices just run the application as fo
 
 By default web server will be started on ``127.0.0.1:8787`` listening to HTTP requests
 
-#####Standalone HTTPS
+##### Standalone HTTPS
 
 The application also supports HTTPS which is required by Amazon Alexa Api for example, so let's say our IP is 
 publicly available, or some domain configured to point to IP where the app is planned to run. In this case
@@ -38,7 +38,7 @@ and run server as following:
 
 According to Amazon Alexa documentation, the certificate can be self signed if the skill is not planned for production use.
 
-#####Whole tool set
+##### Whole tool set
 
 In case you have your own public web server with https and you do not want to expose the static IP of some local machine in your
 home network RabbitMQ can be used as a bridge between Amazon Alexa API and this Broadlink Api engine.
