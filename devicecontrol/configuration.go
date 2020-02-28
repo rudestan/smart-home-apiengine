@@ -90,7 +90,7 @@ type Config struct {
 	fileName  string
 }
 
-func (c *Config) getDeviceByMac(deviceMac string) (*Device, error) {
+func (c *Config) findDeviceByMac(deviceMac string) (*Device, error) {
 	for _, device := range c.Devices {
 		if device.Mac == deviceMac {
 			return device, nil
@@ -100,7 +100,7 @@ func (c *Config) getDeviceByMac(deviceMac string) (*Device, error) {
 	return nil, errors.New("no device found")
 }
 
-func (c *Config) getCommandById(id string) (Command, error)  {
+func (c *Config) findCommandById(id string) (Command, error)  {
 	if cmd, ok := c.Commands[id]; ok {
 		return cmd, nil
 	}
@@ -108,7 +108,7 @@ func (c *Config) getCommandById(id string) (Command, error)  {
 	return Command{}, fmt.Errorf("command \"%s\" not found", id)
 }
 
-func (c *Config) getScenarioByName(name string) (Scenario, error)  {
+func (c *Config) findScenarioByName(name string) (Scenario, error)  {
 	if cmd, ok := c.Scenarios[name]; ok {
 		return cmd, nil
 	}

@@ -29,12 +29,12 @@ func Init(configFile string) error {
 
 // FindCommandById finds Command structure by provided id or error if there is no Command found
 func FindCommandById(id string) (Command, error)  {
-	return config.getCommandById(id)
+	return config.findCommandById(id)
 }
 
 // FindCommandById finds Scenario structure by provided name or error if there is no Scenario found
 func FindScenarioByName(name string) (Scenario, error)  {
-	return config.getScenarioByName(name)
+	return config.findScenarioByName(name)
 }
 
 // ExecScenarioFullCycle executes scenario full cycle with commands one after another, including the delay
@@ -44,7 +44,7 @@ func ExecScenarioFullCycle(scenario Scenario) error {
 	for _, sequenceItem := range scenario.Sequence {
 		log.Printf("Executing sequence item \"%s\"", sequenceItem.Name)
 
-		cmd, err := config.getCommandById(sequenceItem.Name)
+		cmd, err := config.findCommandById(sequenceItem.Name)
 
 		if err != nil {
 			return err
@@ -68,7 +68,7 @@ func ExecScenarioFullCycle(scenario Scenario) error {
 // ExecCommandFullCycle executes the command in full cycle with retry and discover, as well as updating and saving
 // the device data
 func ExecCommandFullCycle(command Command) error {
-	device, err := config.getDeviceByMac(command.DeviceID)
+	device, err := config.findDeviceByMac(command.DeviceID)
 
 	if err != nil {
 		return err
