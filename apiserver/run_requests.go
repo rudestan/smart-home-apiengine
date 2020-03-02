@@ -10,20 +10,21 @@ import (
     "net/http"
 )
 
-func logRequest(r *http.Request)  {
-    log.Printf("Request: \"%s\", from: %s", r.RequestURI, r.RemoteAddr)
-}
-
 // ActionRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
 func ActionRunIntent(w http.ResponseWriter, r *http.Request)  {
     logRequest(r)
     w.Header().Set("Content-Type", "application/json")
+
+    if !isRequestAuthenticated(authToken, w, r) {
+        return
+    }
+
     w.WriteHeader(http.StatusOK)
 
     alexaRequestIntent, err := alexakit.NewAlexaRequestIntent(r)
 
     if err != nil {
-        _, ioErr := io.WriteString(w, NewResponse("error", "Failed to accept POST body of alexa intent"))
+        _, ioErr := io.WriteString(w, NewErrorResponse("Failed to accept POST body of alexa intent"))
 
         if ioErr != nil {
             log.Println(ioErr)
@@ -37,8 +38,7 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request)  {
     simpleAlexaIntent, err := devicecontrol.NewSimpleRequestIntent(alexaRequestIntent)
 
     if err != nil {
-        _, ioErr := io.WriteString(w,
-            NewResponse("error", "Failed to create a simple alexa request intent"))
+        _, ioErr := io.WriteString(w, NewErrorResponse("Failed to create a simple alexa request intent"))
 
         if ioErr != nil {
             log.Println(ioErr)
@@ -57,13 +57,18 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request)  {
         }
     }()
 
-    io.WriteString(w, NewResponse("success", "intent executed"))
+    io.WriteString(w, NewSuccessResponse("intent executed", nil))
 }
 
 // ActionRunCommand api action that accepts command id and tries to execute matched command
 func ActionRunCommand(w http.ResponseWriter, r *http.Request)  {
     logRequest(r)
     w.Header().Set("Content-Type", "application/json")
+
+    if !isRequestAuthenticated(authToken, w, r) {
+        return
+    }
+
     w.WriteHeader(http.StatusOK)
 
     vars := mux.Vars(r)
@@ -72,7 +77,7 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request)  {
     cmd, err := devicecontrol.FindCommandById(commandId)
 
     if err != nil {
-        _, ioErr := io.WriteString(w, NewResponse("error",
+        _, ioErr := io.WriteString(w, NewErrorResponse(
             fmt.Sprintf("Command with id %s was not found", commandId)))
 
         if ioErr != nil {
@@ -92,7 +97,7 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request)  {
         }
     }()
 
-    _, err = io.WriteString(w, NewResponse("success", "command executed"))
+    _, err = io.WriteString(w, NewSuccessResponse("command executed", nil))
 
     if err != nil {
         log.Println(err)
@@ -103,6 +108,11 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request)  {
 func ActionRunScenario(w http.ResponseWriter, r *http.Request)  {
     logRequest(r)
     w.Header().Set("Content-Type", "application/json")
+
+    if !isRequestAuthenticated(authToken, w, r) {
+        return
+    }
+
     w.WriteHeader(http.StatusOK)
 
     vars := mux.Vars(r)
@@ -110,7 +120,7 @@ func ActionRunScenario(w http.ResponseWriter, r *http.Request)  {
     scenario, err := devicecontrol.FindScenarioByName(scenarioId)
 
     if err != nil {
-        _, ioErr := io.WriteString(w, NewResponse("error",
+        _, ioErr := io.WriteString(w, NewErrorResponse(
             fmt.Sprintf("Scenario with id %s was not found", scenarioId)))
 
         if ioErr != nil {
@@ -130,7 +140,7 @@ func ActionRunScenario(w http.ResponseWriter, r *http.Request)  {
         }
     }()
 
-    _, err = io.WriteString(w, NewResponse("success", "scenario executed"))
+    _, err = io.WriteString(w, NewSuccessResponse("scenario executed", nil))
 
     if err != nil {
         log.Println(err)

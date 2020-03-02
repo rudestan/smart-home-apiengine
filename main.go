@@ -28,6 +28,7 @@ func main() {
     var configFile string
     var logFile string
     var srvConfig serverConfig
+    var authToken string
 
     app := &cli.App{
         Name: "Broadlink API Engine",
@@ -93,6 +94,12 @@ func main() {
                         Destination: &srvConfig.TLSKey,
                         Aliases: []string{"tk"},
                     },
+                    &cli.StringFlag{
+                        Name:        "token",
+                        Usage:       "Authorization token bearer for the requests",
+                        Aliases:     []string{"t"},
+                        Destination: &authToken,
+                    },
                 },
                 Action: func(c *cli.Context) error {
                     err := devicecontrol.Init(configFile)
@@ -100,7 +107,7 @@ func main() {
                         return err
                     }
 
-                    return runServer(srvConfig)
+                    return runServer(srvConfig, authToken)
                 },
             },
             {
@@ -165,7 +172,7 @@ func main() {
     }
 }
 
-func runServer(serverConfig serverConfig) error  {
+func runServer(serverConfig serverConfig, authToken string) error  {
     if serverConfig.Protocol == "https" {
         if serverConfig.TLSCert == "" || serverConfig.TLSKey == "" {
             return errors.New("TLS Certificate and Key files are required when using https protocol")
@@ -174,10 +181,11 @@ func runServer(serverConfig serverConfig) error  {
 
     switch serverConfig.Protocol {
     case "http":
-        apiserver.ServeHttp(fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port))
+        apiserver.ServeHttp(fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port), authToken)
     case "https":
         apiserver.ServeHttps(
             fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port),
+            authToken,
             serverConfig.TLSCert,
             serverConfig.TLSKey)
     }

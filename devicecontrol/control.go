@@ -37,6 +37,11 @@ func FindScenarioByName(name string) (Scenario, error)  {
     return config.findScenarioByName(name)
 }
 
+// AllGroups returns groups from config
+func AllGroups() map[string]Group  {
+    return config.Groups
+}
+
 // ExecScenarioFullCycle executes scenario full cycle with commands one after another, including the delay
 func ExecScenarioFullCycle(scenario Scenario) error {
     log.Printf("Executing scenario \"%s\" with %d sequence items", scenario.Name, len(scenario.Sequence))

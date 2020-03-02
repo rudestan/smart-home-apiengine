@@ -76,7 +76,7 @@ type Scenario struct {
 // "TV" with commands related to TV etc.
 type Group struct {
     Name string `json:"name"`
-    Commands []string `json:"commands"`
+    Commands []map[string]string `json:"commands"`
     Scenarios []string `json:"scenarios"`
 } 
 

@@ -65,8 +65,8 @@ the devices via some touch interface (e.g. tablet)
 ToDo:
 
 - read arguments additionally from environment
-- add authorization with bearer token
 - add some new apis for retrieving groups and reloading the config
 - add tests
 - add some CI
+- Write documentation
 - visualise the toolset infrastructure
