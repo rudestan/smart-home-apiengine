@@ -6,13 +6,11 @@ import (
     "log"
     "os"
     "path"
-    "smh-apiengine/pkg/devicecontrol"
 
     "github.com/urfave/cli/v2"
 )
 
 func main() {
-    var configFile string
     var logFile string
 
     execName, err := os.Executable()
@@ -27,17 +25,10 @@ func main() {
             "to JSON file. This configuration file can be used to run the commands on corresponding Broadlink devices " +
             "(e.g. RMP3 Pro, S2, S3, SC1 etc.) as well as run web server app to be able to server the " +
             "incoming requests and execute the commands.",
-        Usage: "an app for configuring and controlling Broadlink devices",
+        Usage: "an app for configuring Broadlink devices",
         UsageText: fmt.Sprintf("%s [global options] command [command options]", path.Base(execName)),
         HideHelp: false,
         Flags: []cli.Flag{
-            &cli.StringFlag{
-                Name:        "config",
-                Usage:       "Path to JSON configuration with commands and devices",
-                Destination: &configFile,
-                Aliases:     []string{"c"},
-                Required:    true,
-            },
             &cli.StringFlag{
                 Name:        "log",
                 Usage:       "Log file for logs output",
@@ -47,44 +38,18 @@ func main() {
         },
         Commands: []*cli.Command{
             {
-                Name:    "run",
-                Usage:   "Runs command or scenario with provided id",
+                Name:    "create",
+                Usage:   "Creates a an empty configuration JSON file",
                 UsageText: fmt.Sprintf("%s run [type: \"scenario\" or \"cmd\"] [id of the command]", execName),
-                Description: "Runs command or scenario with provided id",
+                Description: "Creates an empty configuration JSON file in provided path",
                 Action: func(c *cli.Context) error {
-                    if c.NArg() != 2 {
+                    if c.NArg() != 1 {
                         return errors.New("not all required arguments provided")
                     }
 
-                    runType := c.Args().First()
+                    configFilepath := c.Args().First()
 
-                    if runType != "cmd" && runType != "scenario" {
-                        return errors.New("invalid run type specified. Must be either \"scenario\" or \"cmd\"")
-                    }
-
-                    err := devicecontrol.Init(configFile)
-                    if err != nil {
-                        return err
-                    }
-
-                    id := c.Args().Get(1)
-
-                    switch runType {
-                    case "cmd":
-                        cmd, err := devicecontrol.FindCommandById(id)
-                        if err != nil {
-                            return err
-                        }
-
-                        return devicecontrol.ExecCommandFullCycle(cmd)
-                    case "scenario":
-                        scenario, err := devicecontrol.FindScenarioByName(id)
-                        if err != nil {
-                            return err
-                        }
-
-                        return devicecontrol.ExecScenarioFullCycle(scenario)
-                    }
+                    log.Println(configFilepath)
 
                     return nil
                 },
