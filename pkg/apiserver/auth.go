@@ -1,7 +1,7 @@
 package apiserver
 
 import (
-    "io"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -9,10 +9,10 @@ import (
 
 const (
 	headerAuthorization = "Authorization"
-	bearerPrefix = "Bearer "
+	bearerPrefix        = "Bearer "
 )
 
-func isValidToken(token string, authHeader string) bool  {
+func isValidToken(token string, authHeader string) bool {
 	if token == "" {
 		return true
 	}
@@ -24,7 +24,7 @@ func isValidToken(token string, authHeader string) bool  {
 	return false
 }
 
-func isRequestAuthenticated(token string, w http.ResponseWriter, r *http.Request) bool  {
+func isRequestAuthenticated(token string, w http.ResponseWriter, r *http.Request) bool {
 	if isValidToken(token, r.Header.Get(headerAuthorization)) {
 		return true
 	}
