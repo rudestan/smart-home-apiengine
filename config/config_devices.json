@@ -1,27 +1,27 @@
 {
   "devices": {
-    "78:77:77:77:77:77": {
+    "78:0f:77:77:77:77": {
       "name": "SC1 Switch",
       "ip": "192.168.1.16",
-      "mac": "78:77:77:77:77:77",
+      "mac": "78:0f:77:77:77:77",
       "key": "65b7cf5b51557b1ffd13811147a51dab",
       "id": "01000000",
       "device_type": "0x7547",
       "enabled": true
     },
-    "78:78:78:78:78:78": {
+    "78:88:88:88:88:88": {
       "name": "Lamp in living room",
-      "ip": "192.168.1.22",
-      "mac": "78:78:78:78:78:78",
+      "ip": "192.168.1.7",
+      "mac": "78:88:88:88:88:88",
       "key": "00000000000000000000000000000000",
       "id": "01000000",
       "device_type": "0x2733",
       "enabled": true
     },
-    "78:88:88:88:88:88": {
+    "78:00:00:00:00:00": {
       "name": "RM3 Pro Blaster",
       "ip": "192.168.1.4",
-      "mac": "78:88:88:88:88:88",
+      "mac": "78:00:00:00:00:00",
       "key": "5ce54c465ce54c469258c335c9cb3925",
       "id": "04000000",
       "device_type": "0x279d",
@@ -94,28 +94,8 @@
     }
   },
   "commands": {
-    "Turn off Lamp": {
-      "device_id": "78:78:78:78:78:78",
-      "name": "Turn off Lamp",
-      "code": "00",
-      "intents": [
-        {
-          "name": "TurnOnIntent",
-          "slots": {
-            "action": {
-              "name": "action",
-              "value": "off"
-            },
-            "item": {
-              "name": "item",
-              "value": "socket"
-            }
-          }
-        }
-      ]
-    },
     "Turn off Top light": {
-      "device_id": "78:77:77:77:77:77",
+      "device_id": "78:0f:77:77:77:77",
       "name": "Turn off Top light",
       "code": "00",
       "intents": [
@@ -134,28 +114,8 @@
         }
       ]
     },
-    "Turn on Lamp": {
-      "device_id": "78:78:78:78:78:78",
-      "name": "Turn on Lamp",
-      "code": "01",
-      "intents": [
-        {
-          "name": "TurnOnIntent",
-          "slots": {
-            "action": {
-              "name": "action",
-              "value": "on"
-            },
-            "item": {
-              "name": "item",
-              "value": "socket"
-            }
-          }
-        }
-      ]
-    },
     "Turn on TV": {
-      "device_id": "78:88:88:88:88:88",
+      "device_id": "78:00:00:00:00:00",
       "name": "Turn on TV",
       "code": "98f79sdf79879f8s7f98sd89f7sd98f789sdf7",
       "intents": [
@@ -187,8 +147,8 @@
         }
       ]
     },
-    "Turn on Top light": {
-      "device_id": "78:77:77:77:77:77",
+    "Turn_on_Top_light": {
+      "device_id": "78:0f:77:77:77:77",
       "name": "Turn on Top light",
       "code": "01",
       "intents": [
@@ -206,18 +166,58 @@
           }
         }
       ]
+    },
+    "Turn_off_Lamp": {
+      "device_id": "78:88:88:88:88:88",
+      "name": "Turn_off_Lamp",
+      "code": "00",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "off"
+            },
+            "item": {
+              "name": "item",
+              "value": "socket"
+            }
+          }
+        }
+      ]
+    },
+    "Turn_on_Lamp": {
+      "device_id": "78:88:88:88:88:88",
+      "name": "Turn_on_Lamp",
+      "code": "01",
+      "intents": [
+        {
+          "name": "TurnOnIntent",
+          "slots": {
+            "action": {
+              "name": "action",
+              "value": "on"
+            },
+            "item": {
+              "name": "item",
+              "value": "socket"
+            }
+          }
+        }
+      ]
     }
   },
   "scenarios": {
-    "On And Off socket": {
+    "On_And_Off_socket": {
       "name": "On And Off socket",
       "sequence": [
         {
-          "name": "Turn off Lamp",
+          "name": "Turn_off_Lamp",
           "delay": 2
         },
         {
-          "name": "Turn on Lamp",
+          "name": "Turn_on_Lamp",
           "delay": 0
         }
       ],
@@ -266,11 +266,23 @@
       ]
     }
   },
-  "groups": {
-    "Living room lights": {
-      "name": "Living room lights",
-      "commands": [],
-      "scenarios": []
+  "controls": {
+    "Lights control": {
+      "name": "Lights control",
+      "items": {
+        "on": [
+          {
+            "id": "Turn_on_Lamp",
+            "name": "On",
+            "type": "command"
+          },
+          {
+            "id": "Turn_off_Lamp",
+            "name": "Off",
+            "type": "command"
+          }
+        ]
+      }
     }
   }
 }

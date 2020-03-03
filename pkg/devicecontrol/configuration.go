@@ -80,6 +80,17 @@ type Group struct {
 	Scenarios []string            `json:"scenarios"`
 }
 
+type Item struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+} 
+
+type Control struct {
+	Name string `json:"name"`
+	Items map[string][]Item `json:"items"`
+} 
+
 // Config struct is the root struct that defines a device control struct
 type Config struct {
 	Devices   map[string]*Device  `json:"devices"`
@@ -87,6 +98,7 @@ type Config struct {
 	Commands  map[string]Command  `json:"commands"`
 	Scenarios map[string]Scenario `json:"scenarios"`
 	Groups    map[string]Group    `json:"groups"`
+	Controls  map[string]Control  `json:"controls"`
 	fileName  string
 }
 

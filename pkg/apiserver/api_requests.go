@@ -19,8 +19,8 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ActionRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
-func ActionGroups(w http.ResponseWriter, r *http.Request) {
+// ActionControls api action that accepts alexa request JSON and tries to execute matched scenario or command
+func ActionControls(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 
@@ -30,7 +30,7 @@ func ActionGroups(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	_, ioErr := io.WriteString(w, NewSuccessResponse("groups", devicecontrol.AllGroups()))
+	_, ioErr := io.WriteString(w, NewSuccessResponse("controls", devicecontrol.AllControls()))
 
 	if ioErr != nil {
 		log.Println(ioErr)

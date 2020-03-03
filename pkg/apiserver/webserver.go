@@ -20,7 +20,7 @@ func newServer(serverAddr string) *http.Server {
 	r.HandleFunc("/run/intent", ActionRunIntent).Methods("POST")
 
 	// Api routes
-	r.HandleFunc("/groups", ActionGroups)
+	r.HandleFunc("/controls", ActionControls)
 
 	return &http.Server{
 		Handler:      r,

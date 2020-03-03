@@ -38,9 +38,9 @@ func FindScenarioByName(name string) (Scenario, error) {
 	return config.findScenarioByName(name)
 }
 
-// AllGroups returns groups from config
-func AllGroups() map[string]Group {
-	return config.Groups
+// AllControls returns controls from config
+func AllControls() map[string]Control {
+	return config.Controls
 }
 
 // ExecScenarioFullCycle executes scenario full cycle with commands one after another, including the delay
