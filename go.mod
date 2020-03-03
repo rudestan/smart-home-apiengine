@@ -1,4 +1,4 @@
-module apiengine
+module smh-apiengine
 
 require (
 	github.com/gorilla/mux v1.7.4

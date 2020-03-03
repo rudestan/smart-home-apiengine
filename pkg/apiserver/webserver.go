@@ -1,10 +1,11 @@
 package apiserver
 
 import (
-    "github.com/gorilla/mux"
     "log"
     "net/http"
     "time"
+
+    "github.com/gorilla/mux"
 )
 
 var authToken string

@@ -1,13 +1,14 @@
 package apiserver
 
 import (
-    "apiengine/alexakit"
-    "apiengine/devicecontrol"
     "fmt"
-    "github.com/gorilla/mux"
     "io"
     "log"
     "net/http"
+    "smh-apiengine/pkg/alexakit"
+    "smh-apiengine/pkg/devicecontrol"
+
+    "github.com/gorilla/mux"
 )
 
 // ActionRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command

@@ -1,10 +1,10 @@
 package apiserver
 
 import (
-	"apiengine/devicecontrol"
 	"io"
 	"log"
 	"net/http"
+	"smh-apiengine/pkg/devicecontrol"
 )
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request)  {

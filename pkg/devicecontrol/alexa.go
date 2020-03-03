@@ -1,9 +1,9 @@
 package devicecontrol
 
 import (
-    "apiengine/alexakit"
     "errors"
     "fmt"
+    "smh-apiengine/pkg/alexakit"
     "strings"
 )
 

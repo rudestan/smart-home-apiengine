@@ -1,5 +1,5 @@
 .idea/
 *.DS_Store
 *.log
-apiengine
+output/
 config/config.json

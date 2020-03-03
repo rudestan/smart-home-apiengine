@@ -1,10 +1,11 @@
 package devicecontrol
 
 import (
-    "github.com/rudestan/broadlinkrm"
-    "github.com/spf13/cast"
     "log"
     "time"
+
+    "github.com/rudestan/broadlinkrm"
+    "github.com/spf13/cast"
 )
 
 var config Config
@@ -38,7 +39,7 @@ func FindScenarioByName(name string) (Scenario, error)  {
 }
 
 // AllGroups returns groups from config
-func AllGroups() map[string]Group  {
+func AllGroups() map[string]Group {
     return config.Groups
 }
 
