@@ -5,6 +5,7 @@ import (
     "fmt"
     "log"
     "os"
+    "path"
     "smh-apiengine/pkg/devicecontrol"
 
     "github.com/urfave/cli/v2"
@@ -27,7 +28,7 @@ func main() {
             "(e.g. RMP3 Pro, S2, S3, SC1 etc.) as well as run web server app to be able to server the " +
             "incoming requests and execute the commands.",
         Usage: "an app for configuring and controlling Broadlink devices",
-        UsageText: fmt.Sprintf("%s [global options] command [command options]", execName),
+        UsageText: fmt.Sprintf("%s [global options] command [command options]", path.Base(execName)),
         HideHelp: false,
         Flags: []cli.Flag{
             &cli.StringFlag{

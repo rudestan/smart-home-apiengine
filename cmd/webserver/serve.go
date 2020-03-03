@@ -5,6 +5,7 @@ import (
     "fmt"
     "log"
     "os"
+    "path"
     "smh-apiengine/pkg/apiserver"
     "smh-apiengine/pkg/devicecontrol"
 
@@ -43,7 +44,7 @@ func main() {
             "user created JSON for pre-configured device commands, scenarios and devices. Supports an incoming requests" +
             "from Alexa API web servers.",
         Usage: "an app and web server for controlling Broadlink devices",
-        UsageText: fmt.Sprintf("%s [global options] command [command options]", execName),
+        UsageText: fmt.Sprintf("%s [global options] command [command options]", path.Base(execName)),
         HideHelp: false,
         Flags: []cli.Flag{
             &cli.StringFlag{
