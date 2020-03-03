@@ -33,6 +33,7 @@ func main() {
 				Usage:       "Path to JSON configuration with commands and devices",
 				Destination: &configFile,
 				Aliases:     []string{"c"},
+				EnvVars:	 []string{"SMH_CONFIG"},
 				Required:    true,
 			},
 			&cli.StringFlag{
@@ -40,6 +41,7 @@ func main() {
 				Usage:       "Log file for logs output",
 				Destination: &logFile,
 				Aliases:     []string{"l"},
+				EnvVars:	 []string{"SMH_RUNNER_LOG_FILE"},
 			},
 		},
 		Action: func(c *cli.Context) error {

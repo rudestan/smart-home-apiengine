@@ -52,6 +52,7 @@ func main() {
 				Usage:       "Path to JSON configuration with commands and devices",
 				Destination: &configFile,
 				Aliases:     []string{"c"},
+				EnvVars:	 []string{"SMH_CONFIG"},
 				Required:    true,
 			},
 			&cli.StringFlag{
@@ -59,6 +60,7 @@ func main() {
 				Usage:       "Log file for logs output",
 				Destination: &logFile,
 				Aliases:     []string{"l"},
+				EnvVars:	 []string{"SMH_SERVER_LOG_FILE"},
 			},
 			&cli.StringFlag{
 				Name:        "proto",
@@ -66,6 +68,7 @@ func main() {
 				Usage:       "Protocol for web server to run (values: \"http\", \"https\")",
 				Destination: &srvConfig.Protocol,
 				Aliases:     []string{"r"},
+				EnvVars:	 []string{"SMH_SERVER_PROTO"},
 			},
 			&cli.StringFlag{
 				Name:        "address",
@@ -73,6 +76,7 @@ func main() {
 				Usage:       "Ip address for web server",
 				Destination: &srvConfig.Address,
 				Aliases:     []string{"a"},
+				EnvVars:	 []string{"SMH_SERVER_IP_ADDRESS"},
 			},
 			&cli.IntFlag{
 				Name:        "port",
@@ -80,24 +84,28 @@ func main() {
 				Usage:       "Port for web server",
 				Destination: &srvConfig.Port,
 				Aliases:     []string{"p"},
+				EnvVars:	 []string{"SMH_SERVER_PORT"},
 			},
 			&cli.StringFlag{
 				Name:        "tls-cert",
-				Usage:       "TLS Certificate file path (only in case https protocol is used)",
+				Usage:       "TLS Certificate file path (only when https protocol is used)",
 				Destination: &srvConfig.TLSCert,
 				Aliases:     []string{"s"},
+				EnvVars:	 []string{"SMH_SERVER_TLS_CERT"},
 			},
 			&cli.StringFlag{
 				Name:        "tls-key",
-				Usage:       "TLS Key file path (only in case https protocol is used)",
+				Usage:       "TLS Key file path (only when https protocol is used)",
 				Destination: &srvConfig.TLSKey,
 				Aliases:     []string{"k"},
+				EnvVars:	 []string{"SMH_SERVER_TLS_KEY"},
 			},
 			&cli.StringFlag{
 				Name:        "token",
 				Usage:       "Authorization token bearer for the requests",
-				Aliases:     []string{"t"},
 				Destination: &authToken,
+				Aliases:     []string{"t"},
+				EnvVars:	 []string{"SMH_SERVER_AUTH_TOKEN"},
 			},
 		},
 		Action: func(c *cli.Context) error {

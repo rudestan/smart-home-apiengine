@@ -1,5 +1,5 @@
 .idea/
 *.DS_Store
 *.log
-output/
+bin/
 config/config.json
