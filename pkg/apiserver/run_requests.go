@@ -15,6 +15,7 @@ import (
 func ActionRunIntent(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if !isRequestAuthenticated(authToken, w, r) {
 		return
@@ -69,6 +70,7 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request) {
 func ActionRunCommand(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if !isRequestAuthenticated(authToken, w, r) {
 		return
@@ -113,6 +115,7 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request) {
 func ActionRunScenario(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if !isRequestAuthenticated(authToken, w, r) {
 		return

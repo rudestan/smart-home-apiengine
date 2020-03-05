@@ -24,6 +24,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 func ActionControls(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if !isRequestAuthenticated(authToken, w, r) {
 		return
