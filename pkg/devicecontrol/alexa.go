@@ -16,9 +16,9 @@ func HandleAlexaRequest(reqIntent alexakit.SimpleIntent) error {
 	if err == nil {
 		if len(scenario.Sequence) > 0 {
 			return ExecScenarioFullCycle(scenario)
-		} else {
-			return fmt.Errorf("scenario \"%s\" has no sequence items", scenario.Name)
 		}
+
+		return fmt.Errorf("scenario \"%s\" has no sequence items", scenario.Name)
 	}
 
 	cmd, err := findCommand(reqIntent)

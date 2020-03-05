@@ -58,7 +58,11 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	io.WriteString(w, NewSuccessResponse("intent executed", nil))
+	_, err = io.WriteString(w, NewSuccessResponse("intent executed", nil))
+
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 // ActionRunCommand api action that accepts command id and tries to execute matched command
@@ -73,13 +77,13 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
-	commandId := vars["commandId"]
+	commandID := vars["commandId"]
 
-	cmd, err := devicecontrol.FindCommandById(commandId)
+	cmd, err := devicecontrol.FindCommandByID(commandID)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, NewErrorResponse(
-			fmt.Sprintf("Command with id %s was not found", commandId)))
+			fmt.Sprintf("Command with id %s was not found", commandID)))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -117,12 +121,12 @@ func ActionRunScenario(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
-	scenarioId := vars["scenarioId"]
-	scenario, err := devicecontrol.FindScenarioByName(scenarioId)
+	scenarioID := vars["scenarioId"]
+	scenario, err := devicecontrol.FindScenarioByName(scenarioID)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, NewErrorResponse(
-			fmt.Sprintf("Scenario with id %s was not found", scenarioId)))
+			fmt.Sprintf("Scenario with id %s was not found", scenarioID)))
 
 		if ioErr != nil {
 			log.Println(err)

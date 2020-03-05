@@ -10,24 +10,27 @@ const (
 	responseError   = "error"
 )
 
-type ApiResultResponseWithPayload struct {
+// APIResultResponseWithPayload api response with some additional payload
+type APIResultResponseWithPayload struct {
 	Result  string      `json:"result"`
 	Message string      `json:"message"`
 	Payload interface{} `json:"payload"`
 }
 
-type ApiResultResponse struct {
+// APIResultResponse api response for messages without payload
+type APIResultResponse struct {
 	Result  string `json:"result"`
 	Message string `json:"message"`
 }
 
+// NewResponse creates new response and returns marshalled json string
 func NewResponse(result string, msg string, payload interface{}) string {
 	var resp interface{}
 
 	if payload != nil {
-		resp = ApiResultResponseWithPayload{Result: result, Message: msg, Payload: payload}
+		resp = APIResultResponseWithPayload{Result: result, Message: msg, Payload: payload}
 	} else {
-		resp = ApiResultResponse{Result: result, Message: msg}
+		resp = APIResultResponse{Result: result, Message: msg}
 	}
 
 	jsonResp, err := json.Marshal(resp)
@@ -41,10 +44,12 @@ func NewResponse(result string, msg string, payload interface{}) string {
 	return string(jsonResp)
 }
 
+// NewSuccessResponse creates success response
 func NewSuccessResponse(msg string, payload interface{}) string {
 	return NewResponse(responseSuccess, msg, payload)
 }
 
+// NewErrorResponse creates an error response
 func NewErrorResponse(msg string) string {
 	return NewResponse(responseError, msg, nil)
 }

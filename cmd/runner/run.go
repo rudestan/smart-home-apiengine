@@ -64,7 +64,7 @@ func main() {
 
 			switch runType {
 			case "cmd":
-				cmd, err := devicecontrol.FindCommandById(id)
+				cmd, err := devicecontrol.FindCommandByID(id)
 				if err != nil {
 					return err
 				}

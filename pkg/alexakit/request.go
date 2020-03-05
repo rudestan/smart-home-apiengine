@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// Slot struct represents amazon alexa slot element
 type Slot struct {
 	Name               string `json:"name"`
 	Value              string `json:"value"`
@@ -13,12 +14,14 @@ type Slot struct {
 	Source             string `json:"source"`
 }
 
+// Intent struct represents alexa intent element and contains slots
 type Intent struct {
 	Name               string          `json:"name"`
 	ConfirmationStatus string          `json:"confirmationStatus"`
 	Slots              map[string]Slot `json:"slots"`
 }
 
+// Request struct is the root amazon alexa request element with all the data
 type Request struct {
 	Type      string `json:"type"`
 	RequestID string `json:"requestId"`
@@ -45,10 +48,7 @@ type SimpleIntent struct {
 	Slots map[string]SimpleSlot
 }
 
-func (ar *AlexaRequest) GetRequestType() string {
-	return ar.Request.Type
-}
-
+// NewAlexaRequestIntent creates AlexaRequest struct with Intent from received http request
 func NewAlexaRequestIntent(r *http.Request) (AlexaRequest, error) {
 	var alexaRequestIntent AlexaRequest
 

@@ -140,9 +140,9 @@ func runServer(serverConfig serverConfig, authToken string) error {
 
 	switch serverConfig.Protocol {
 	case "http":
-		apiserver.ServeHttp(fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port), authToken)
+		apiserver.ServeHTTP(fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port), authToken)
 	case "https":
-		apiserver.ServeHttps(
+		apiserver.ServeHTTPS(
 			fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port),
 			authToken,
 			serverConfig.TLSCert,

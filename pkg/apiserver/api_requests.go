@@ -7,6 +7,7 @@ import (
 	"smh-apiengine/pkg/devicecontrol"
 )
 
+// NotFoundHandler used for not found responses
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")

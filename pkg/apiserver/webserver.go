@@ -30,8 +30,8 @@ func newServer(serverAddr string) *http.Server {
 	}
 }
 
-// ServeHttp runs http server
-func ServeHttp(serverAddr string, token string) {
+// ServeHTTP runs http server
+func ServeHTTP(serverAddr string, token string) {
 	srv := newServer(serverAddr)
 	authToken = token
 	log.Printf("http api server is listening requests on %s\n", serverAddr)
@@ -43,8 +43,8 @@ func ServeHttp(serverAddr string, token string) {
 	log.Println(srv.ListenAndServe())
 }
 
-// ServeHttps runs https server using provided TLS certificate and key
-func ServeHttps(serverAddr string, token string, certFile string, keyFile string) {
+// ServeHTTPS runs https server using provided TLS certificate and key
+func ServeHTTPS(serverAddr string, token string, certFile string, keyFile string) {
 	srv := newServer(serverAddr)
 	authToken = token
 	log.Printf("http api is server serving requests on %s\n", serverAddr)

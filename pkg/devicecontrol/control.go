@@ -28,12 +28,12 @@ func Init(configFile string) error {
 	return nil
 }
 
-// FindCommandById finds Command structure by provided id or error if there is no Command found
-func FindCommandById(id string) (Command, error) {
-	return config.findCommandById(id)
+// FindCommandByID finds Command structure by provided id or error if there is no Command found
+func FindCommandByID(id string) (Command, error) {
+	return config.findCommandByID(id)
 }
 
-// FindCommandById finds Scenario structure by provided name or error if there is no Scenario found
+// FindScenarioByName finds Scenario structure by provided name or error if there is no Scenario found
 func FindScenarioByName(name string) (Scenario, error) {
 	return config.findScenarioByName(name)
 }
@@ -50,7 +50,7 @@ func ExecScenarioFullCycle(scenario Scenario) error {
 	for _, sequenceItem := range scenario.Sequence {
 		log.Printf("Executing sequence item \"%s\"", sequenceItem.Name)
 
-		cmd, err := config.findCommandById(sequenceItem.Name)
+		cmd, err := config.findCommandByID(sequenceItem.Name)
 
 		if err != nil {
 			return err

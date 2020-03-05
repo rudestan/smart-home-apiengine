@@ -80,12 +80,14 @@ type Group struct {
 	Scenarios []string            `json:"scenarios"`
 }
 
+// Item a struct that represents control item
 type Item struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
 } 
 
+// Control struct is used for organising commands and scenarios in control groups (e.g. remote control)
 type Control struct {
 	Name string `json:"name"`
 	Items map[string][]Item `json:"items"`
@@ -112,7 +114,7 @@ func (c *Config) findDeviceByMac(deviceMac string) (*Device, error) {
 	return nil, errors.New("no device found")
 }
 
-func (c *Config) findCommandById(id string) (Command, error) {
+func (c *Config) findCommandByID(id string) (Command, error) {
 	if cmd, ok := c.Commands[id]; ok {
 		return cmd, nil
 	}
@@ -154,9 +156,9 @@ func LoadConfiguration(fileName string) (Config, error) {
 
 	if err != nil {
 		return Config{}, err
-	} else {
-		config.fileName = fileName
 	}
+
+	config.fileName = fileName
 
 	return config, nil
 }
