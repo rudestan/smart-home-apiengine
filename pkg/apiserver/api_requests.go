@@ -13,7 +13,7 @@ func (s *server) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
 
-	_, ioErr := io.WriteString(w, NewErrorResponse("Resource not found"))
+	_, ioErr := io.WriteString(w, newErrorResponse("Resource not found"))
 
 	if ioErr != nil {
 		log.Println(ioErr)
@@ -26,13 +26,13 @@ func (s *server) handleControls(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(s.token, w, r) {
+	if !s.isRequestAuthenticated(w, r) {
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
-	_, ioErr := io.WriteString(w, NewSuccessResponse("controls", devicecontrol.AllControls()))
+	_, ioErr := io.WriteString(w, newSuccessResponse("controls", devicecontrol.AllControls()))
 
 	if ioErr != nil {
 		log.Println(ioErr)

@@ -23,8 +23,8 @@ type APIResultResponse struct {
 	Message string `json:"message"`
 }
 
-// NewResponse creates new response and returns marshalled json string
-func NewResponse(result string, msg string, payload interface{}) string {
+// newResponse creates new response and returns marshalled json string
+func newResponse(result string, msg string, payload interface{}) string {
 	var resp interface{}
 
 	if payload != nil {
@@ -45,11 +45,11 @@ func NewResponse(result string, msg string, payload interface{}) string {
 }
 
 // NewSuccessResponse creates success response
-func NewSuccessResponse(msg string, payload interface{}) string {
-	return NewResponse(responseSuccess, msg, payload)
+func newSuccessResponse(msg string, payload interface{}) string {
+	return newResponse(responseSuccess, msg, payload)
 }
 
 // NewErrorResponse creates an error response
-func NewErrorResponse(msg string) string {
-	return NewResponse(responseError, msg, nil)
+func newErrorResponse(msg string) string {
+	return newResponse(responseError, msg, nil)
 }

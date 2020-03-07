@@ -17,7 +17,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(s.token, w, r) {
+	if !s.isRequestAuthenticated(w, r) {
 		return
 	}
 
@@ -26,7 +26,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	alexaRequestIntent, err := alexakit.NewAlexaRequestIntent(r)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, NewErrorResponse("Failed to accept POST body of alexa intent"))
+		_, ioErr := io.WriteString(w, newErrorResponse("Failed to accept POST body of alexa intent"))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -40,7 +40,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	simpleAlexaIntent, err := devicecontrol.NewSimpleRequestIntent(alexaRequestIntent)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, NewErrorResponse("Failed to create a simple alexa request intent"))
+		_, ioErr := io.WriteString(w, newErrorResponse("Failed to create a simple alexa request intent"))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -59,7 +59,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	_, err = io.WriteString(w, NewSuccessResponse("intent executed", nil))
+	_, err = io.WriteString(w, newSuccessResponse("intent executed", nil))
 
 	if err != nil {
 		log.Println(err)
@@ -72,7 +72,7 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(s.token, w, r) {
+	if !s.isRequestAuthenticated(w, r) {
 		return
 	}
 
@@ -84,7 +84,7 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	cmd, err := devicecontrol.FindCommandByID(commandID)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, NewErrorResponse(
+		_, ioErr := io.WriteString(w, newErrorResponse(
 			fmt.Sprintf("Command with id %s was not found", commandID)))
 
 		if ioErr != nil {
@@ -104,7 +104,7 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	_, err = io.WriteString(w, NewSuccessResponse("command executed", nil))
+	_, err = io.WriteString(w, newSuccessResponse("command executed", nil))
 
 	if err != nil {
 		log.Println(err)
@@ -117,7 +117,7 @@ func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(s.token, w, r) {
+	if !s.isRequestAuthenticated(w, r) {
 		return
 	}
 
@@ -128,7 +128,7 @@ func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	scenario, err := devicecontrol.FindScenarioByName(scenarioID)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, NewErrorResponse(
+		_, ioErr := io.WriteString(w, newErrorResponse(
 			fmt.Sprintf("Scenario with id %s was not found", scenarioID)))
 
 		if ioErr != nil {
@@ -148,7 +148,7 @@ func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	_, err = io.WriteString(w, NewSuccessResponse("scenario executed", nil))
+	_, err = io.WriteString(w, newSuccessResponse("scenario executed", nil))
 
 	if err != nil {
 		log.Println(err)
