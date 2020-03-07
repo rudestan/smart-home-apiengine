@@ -7,8 +7,8 @@ import (
 	"smh-apiengine/pkg/devicecontrol"
 )
 
-// NotFoundHandler used for not found responses
-func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+// handleNotFound used for not found responses
+func (s *server) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
@@ -20,13 +20,13 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ActionControls api action that accepts alexa request JSON and tries to execute matched scenario or command
-func ActionControls(w http.ResponseWriter, r *http.Request) {
+// handleControls api handler that accepts alexa request JSON and tries to execute matched scenario or command
+func (s *server) handleControls(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(authToken, w, r) {
+	if !isRequestAuthenticated(s.token, w, r) {
 		return
 	}
 

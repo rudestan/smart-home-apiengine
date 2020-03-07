@@ -85,6 +85,7 @@ type Item struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
+	State string `json:"state"`
 } 
 
 // Control struct is used for organising commands and scenarios in control groups (e.g. remote control)

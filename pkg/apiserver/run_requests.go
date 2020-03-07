@@ -11,13 +11,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ActionRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
-func ActionRunIntent(w http.ResponseWriter, r *http.Request) {
+// handleRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
+func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(authToken, w, r) {
+	if !isRequestAuthenticated(s.token, w, r) {
 		return
 	}
 
@@ -66,13 +66,13 @@ func ActionRunIntent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ActionRunCommand api action that accepts command id and tries to execute matched command
-func ActionRunCommand(w http.ResponseWriter, r *http.Request) {
+// handleRunCommand api action that accepts command id and tries to execute matched command
+func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(authToken, w, r) {
+	if !isRequestAuthenticated(s.token, w, r) {
 		return
 	}
 
@@ -111,13 +111,13 @@ func ActionRunCommand(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ActionRunScenario api action that accepts scenario id and tries to execute matched scenario
-func ActionRunScenario(w http.ResponseWriter, r *http.Request) {
+// handleRunScenario api action that accepts scenario id and tries to execute matched scenario
+func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if !isRequestAuthenticated(authToken, w, r) {
+	if !isRequestAuthenticated(s.token, w, r) {
 		return
 	}
 
