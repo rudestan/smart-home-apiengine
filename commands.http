@@ -7,6 +7,5 @@ GET 127.0.0.1:8787/run/command/Turn_on_Lamp
 Authorization: Bearer some_test_token
 
 ### Groups
-GET 127.0.0.1:8787/groups
-
+GET 127.0.0.1:8787/controls
 ###

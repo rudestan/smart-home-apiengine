@@ -12,29 +12,27 @@ const (
 	bearerPrefix        = "Bearer "
 )
 
-func (s *server) isTokenValid(authHeader string) bool {
-	if s.token == "" {
-		return true
-	}
+func (s *server) authTokenMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.config.Token == "" || s.isTokenValid(r.Header.Get(headerAuthorization)) {
+			next.ServeHTTP(w, r)
 
-	if len(authHeader) > 0 && strings.HasPrefix(authHeader, bearerPrefix) {
-		return s.token == strings.TrimPrefix(authHeader, bearerPrefix)
-	}
+			return
+		}
 
-	return false
+		log.Printf("Wrong token provided: %s\n", r.Header.Get(headerAuthorization))
+		w.WriteHeader(http.StatusForbidden)
+
+		_, ioErr := io.WriteString(w, newErrorResponse("Wrong token provided!"))
+		if ioErr != nil {
+			log.Println(ioErr)
+		}
+	})
 }
 
-func (s *server) isRequestAuthenticated(w http.ResponseWriter, r *http.Request) bool {
-	if s.isTokenValid(r.Header.Get(headerAuthorization)) {
-		return true
-	}
-
-	log.Printf("Wrong token provided: %s\n", r.Header.Get(headerAuthorization))
-	w.WriteHeader(http.StatusForbidden)
-
-	_, ioErr := io.WriteString(w, newErrorResponse("Wrong token provided!"))
-	if ioErr != nil {
-		log.Println(ioErr)
+func (s *server) isTokenValid(authHeader string) bool {
+	if len(authHeader) > 0 && strings.HasPrefix(authHeader, bearerPrefix) {
+		return s.config.Token == strings.TrimPrefix(authHeader, bearerPrefix)
 	}
 
 	return false

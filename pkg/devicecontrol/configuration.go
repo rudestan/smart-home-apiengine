@@ -131,8 +131,8 @@ func (c *Config) findScenarioByName(name string) (Scenario, error) {
 	return Scenario{}, fmt.Errorf("scenario \"%s\" not found", name)
 }
 
-// LoadConfiguration loads the json configuration from provided file
-func LoadConfiguration(fileName string) (Config, error) {
+// NewConfiguration loads the json configuration from provided file
+func NewConfiguration(fileName string) (Config, error) {
 	jsonFile, err := os.Open(fileName)
 
 	if err != nil {
@@ -153,6 +153,8 @@ func LoadConfiguration(fileName string) (Config, error) {
 		return Config{}, err
 	}
 
+	var config Config
+
 	err = json.Unmarshal(contents, &config)
 
 	if err != nil {
@@ -164,8 +166,8 @@ func LoadConfiguration(fileName string) (Config, error) {
 	return config, nil
 }
 
-// SaveConfiguration saves the configuration to the provided filename
-func SaveConfiguration(fileName string) error {
+// saveConfiguration saves the configuration to the provided filename
+func (c *Config) saveConfiguration(fileName string) error {
 	fileInfo, err := os.Stat(fileName)
 	mode := os.FileMode(0666)
 	var jsonFile *os.File
@@ -197,7 +199,7 @@ func SaveConfiguration(fileName string) error {
 		}
 	}()
 
-	data, err := json.MarshalIndent(config, "", "    ")
+	data, err := json.MarshalIndent(c, "", "    ")
 
 	if err != nil {
 		return errors.New("failed to save config")

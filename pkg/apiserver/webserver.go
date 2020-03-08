@@ -1,29 +1,41 @@
 package apiserver
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"smh-apiengine/pkg/devicecontrol"
 	"time"
 
 	"github.com/gorilla/mux"
 )
+type ServerConfig struct {
+	Protocol string
+	Address  string
+	Port     int
+	Token    string
+	TLSCert  string
+	TLSKey   string
+}
 
 type server struct {
 	router *mux.Router
-	token string
+	config ServerConfig
 	server *http.Server
+	dataProvider devicecontrol.DeviceControl
 }
 
-func newServer(serverAddr string, router *mux.Router, token string) *server {
+func newServer(serverConfig ServerConfig, router *mux.Router, control devicecontrol.DeviceControl) *server {
 	server := &server{
 		router: router,
-		token: token,
+		config: serverConfig,
 		server: &http.Server{
 			Handler:      router,
-			Addr:         serverAddr,
+			Addr:         fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port),
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		},
+		dataProvider: control,
 	}
 
 	server.routes()
@@ -31,8 +43,10 @@ func newServer(serverAddr string, router *mux.Router, token string) *server {
 	return server
 }
 
-func (s *server) routes()  {
+func (s *server) routes() {
 	s.router.NotFoundHandler = http.HandlerFunc(s.handleNotFound)
+	s.router.Use(s.headersMiddleware)
+	s.router.Use(s.authTokenMiddleware)
 
 	// Run routes
 	s.router.HandleFunc("/run/command/{commandId}", s.handleRunCommand)
@@ -43,32 +57,27 @@ func (s *server) routes()  {
 	s.router.HandleFunc("/controls", s.handleControls)
 }
 
-// ServeHTTP runs http server
-func ServeHTTP(serverAddr string, token string) {
-	srv := newServer(serverAddr, mux.NewRouter(), token)
+func (s *server) logProcess()  {
+	log.Printf("%s api server is listening requests on %s:%d\n",
+		s.config.Protocol, s.config.Address, s.config.Port)
 
-	log.Printf("http api server is listening requests on %s\n", serverAddr)
-
-	if token != "" {
-		log.Printf("Requests should use the following token: \"%s\"\n", token)
+	if s.config.Token != "" {
+		log.Printf("Requests should use the following token: \"%s\"\n", s.config.Token)
 	}
+}
 
+// ServeHTTP runs http server
+func ServeHTTP(serverConfig ServerConfig, control devicecontrol.DeviceControl) {
+	srv := newServer(serverConfig, mux.NewRouter(), control)
+
+	srv.logProcess()
 	log.Println(srv.server.ListenAndServe())
 }
 
 // ServeHTTPS runs https server using provided TLS certificate and key
-func ServeHTTPS(serverAddr string, token string, certFile string, keyFile string) {
-	srv := newServer(serverAddr, mux.NewRouter(), token)
+func ServeHTTPS(serverConfig ServerConfig, control devicecontrol.DeviceControl) {
+	srv := newServer(serverConfig, mux.NewRouter(), control)
 
-	log.Printf("http api is server serving requests on %s\n", serverAddr)
-
-	if token != "" {
-		log.Printf("Requests should use the following token: \"%s\"\n", token)
-	}
-
-	log.Println(srv.server.ListenAndServeTLS(certFile, keyFile))
-}
-
-func logRequest(r *http.Request) {
-	log.Printf("Request: \"%s\", from: %s", r.RequestURI, r.RemoteAddr)
+	srv.logProcess()
+	log.Println(srv.server.ListenAndServeTLS(serverConfig.TLSCert, serverConfig.TLSKey))
 }

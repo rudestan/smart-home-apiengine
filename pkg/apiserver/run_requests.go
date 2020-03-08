@@ -2,25 +2,15 @@ package apiserver
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
-	"smh-apiengine/pkg/devicecontrol"
-
-	"github.com/gorilla/mux"
 )
 
 // handleRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
 func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	if !s.isRequestAuthenticated(w, r) {
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 
 	alexaRequestIntent, err := alexakit.NewAlexaRequestIntent(r)
@@ -37,7 +27,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	simpleAlexaIntent, err := devicecontrol.NewSimpleRequestIntent(alexaRequestIntent)
+	simpleAlexaIntent, err := s.dataProvider.NewSimpleRequestIntent(alexaRequestIntent)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, newErrorResponse("Failed to create a simple alexa request intent"))
@@ -52,7 +42,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = devicecontrol.HandleAlexaRequest(simpleAlexaIntent)
+		err = s.dataProvider.HandleAlexaRequest(simpleAlexaIntent)
 
 		if err != nil {
 			log.Println(err)
@@ -68,20 +58,12 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 
 // handleRunCommand api action that accepts command id and tries to execute matched command
 func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	if !s.isRequestAuthenticated(w, r) {
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
 	commandID := vars["commandId"]
 
-	cmd, err := devicecontrol.FindCommandByID(commandID)
+	cmd, err := s.dataProvider.FindCommandByID(commandID)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, newErrorResponse(
@@ -97,7 +79,7 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = devicecontrol.ExecCommandFullCycle(cmd)
+		err = s.dataProvider.ExecCommandFullCycle(cmd)
 
 		if err != nil {
 			log.Println(err)
@@ -113,19 +95,11 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 
 // handleRunScenario api action that accepts scenario id and tries to execute matched scenario
 func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
-	logRequest(r)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	if !s.isRequestAuthenticated(w, r) {
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
 	scenarioID := vars["scenarioId"]
-	scenario, err := devicecontrol.FindScenarioByName(scenarioID)
+	scenario, err := s.dataProvider.FindScenarioByName(scenarioID)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, newErrorResponse(
@@ -141,7 +115,7 @@ func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = devicecontrol.ExecScenarioFullCycle(scenario)
+		err = s.dataProvider.ExecScenarioFullCycle(scenario)
 
 		if err != nil {
 			log.Println(err)

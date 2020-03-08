@@ -18,19 +18,10 @@ const (
 	defaultPort     = 8787
 )
 
-type serverConfig struct {
-	Protocol string
-	Address  string
-	Port     int
-	TLSCert  string
-	TLSKey   string
-}
-
 func main() {
 	var configFile string
 	var logFile string
-	var srvConfig serverConfig
-	var authToken string
+	var srvConfig apiserver.ServerConfig
 
 	execName, err := os.Executable()
 
@@ -103,7 +94,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "token",
 				Usage:       "Authorization token bearer for the requests",
-				Destination: &authToken,
+				Destination: &srvConfig.Token,
 				Aliases:     []string{"t"},
 				EnvVars:	 []string{"SMH_SERVER_AUTH_TOKEN"},
 			},
@@ -116,12 +107,12 @@ func main() {
 				}
 			}
 
-			err := devicecontrol.Init(configFile)
+			deviceControl, err := devicecontrol.NewDeviceControl(configFile)
 			if err != nil {
 				return err
 			}
 
-			return runServer(srvConfig, authToken)
+			return runServer(srvConfig, deviceControl)
 		},
 	}
 
@@ -131,7 +122,7 @@ func main() {
 	}
 }
 
-func runServer(serverConfig serverConfig, authToken string) error {
+func runServer(serverConfig apiserver.ServerConfig, deviceControl devicecontrol.DeviceControl) error {
 	if serverConfig.Protocol == "https" {
 		if serverConfig.TLSCert == "" || serverConfig.TLSKey == "" {
 			return errors.New("TLS Certificate and Key files are required when using https protocol")
@@ -140,13 +131,9 @@ func runServer(serverConfig serverConfig, authToken string) error {
 
 	switch serverConfig.Protocol {
 	case "http":
-		apiserver.ServeHTTP(fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port), authToken)
+		apiserver.ServeHTTP(serverConfig, deviceControl)
 	case "https":
-		apiserver.ServeHTTPS(
-			fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port),
-			authToken,
-			serverConfig.TLSCert,
-			serverConfig.TLSKey)
+		apiserver.ServeHTTPS(serverConfig, deviceControl)
 	}
 
 	return nil

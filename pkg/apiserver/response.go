@@ -44,12 +44,12 @@ func newResponse(result string, msg string, payload interface{}) string {
 	return string(jsonResp)
 }
 
-// NewSuccessResponse creates success response
+// newSuccessResponse creates success response
 func newSuccessResponse(msg string, payload interface{}) string {
 	return newResponse(responseSuccess, msg, payload)
 }
 
-// NewErrorResponse creates an error response
+// newErrorResponse creates an error response
 func newErrorResponse(msg string) string {
 	return newResponse(responseError, msg, nil)
 }

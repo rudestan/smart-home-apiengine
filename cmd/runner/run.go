@@ -55,7 +55,7 @@ func main() {
 				return errors.New("invalid run type specified. Must be either \"scenario\" or \"cmd\"")
 			}
 
-			err := devicecontrol.Init(configFile)
+			deviceControl, err := devicecontrol.NewDeviceControl(configFile)
 			if err != nil {
 				return err
 			}
@@ -64,19 +64,19 @@ func main() {
 
 			switch runType {
 			case "cmd":
-				cmd, err := devicecontrol.FindCommandByID(id)
+				cmd, err := deviceControl.FindCommandByID(id)
 				if err != nil {
 					return err
 				}
 
-				return devicecontrol.ExecCommandFullCycle(cmd)
+				return deviceControl.ExecCommandFullCycle(cmd)
 			case "scenario":
-				scenario, err := devicecontrol.FindScenarioByName(id)
+				scenario, err := deviceControl.FindScenarioByName(id)
 				if err != nil {
 					return err
 				}
 
-				return devicecontrol.ExecScenarioFullCycle(scenario)
+				return deviceControl.ExecScenarioFullCycle(scenario)
 			}
 
 			return nil

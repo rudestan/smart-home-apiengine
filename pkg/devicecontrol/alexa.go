@@ -10,24 +10,24 @@ import (
 // HandleAlexaRequest tries to find the command and device for the alexa request execution. In case of execution
 // failure, for example because the device has changed the ip address, retries to discover the devices again and
 // execute command. If the execution was successful, updates the device's data save it into config json file
-func HandleAlexaRequest(reqIntent alexakit.SimpleIntent) error {
-	scenario, err := findScenario(reqIntent)
+func (deviceControl *DeviceControl) HandleAlexaRequest(reqIntent alexakit.SimpleIntent) error {
+	scenario, err := deviceControl.config.findScenario(reqIntent)
 
 	if err == nil {
 		if len(scenario.Sequence) > 0 {
-			return ExecScenarioFullCycle(scenario)
+			return deviceControl.ExecScenarioFullCycle(scenario)
 		}
 
 		return fmt.Errorf("scenario \"%s\" has no sequence items", scenario.Name)
 	}
 
-	cmd, err := findCommand(reqIntent)
+	cmd, err := deviceControl.config.findCommand(reqIntent)
 
 	if err != nil {
 		return err
 	}
 
-	err = ExecCommandFullCycle(cmd)
+	err = deviceControl.ExecCommandFullCycle(cmd)
 
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func HandleAlexaRequest(reqIntent alexakit.SimpleIntent) error {
 }
 
 // NewSimpleRequestIntent create SimpleRequestIntent struct from full AlexaRequest
-func NewSimpleRequestIntent(request alexakit.AlexaRequest) (alexakit.SimpleIntent, error) {
+func (deviceControl *DeviceControl) NewSimpleRequestIntent(request alexakit.AlexaRequest) (alexakit.SimpleIntent, error) {
 	var simpleRequestIntent alexakit.SimpleIntent
 	intent := request.Request.Intent
 
@@ -45,15 +45,15 @@ func NewSimpleRequestIntent(request alexakit.AlexaRequest) (alexakit.SimpleInten
 		return simpleRequestIntent, errors.New("no intents found in the request")
 	}
 
-	if _, ok := config.Intents[intent.Name]; !ok {
+	if _, ok := deviceControl.config.Intents[intent.Name]; !ok {
 		return alexakit.SimpleIntent{}, errors.New("intent not supported")
 	}
 
-	targetSlots := config.Intents[intent.Name].Slots
+	targetSlots := deviceControl.config.Intents[intent.Name].Slots
 	requestSlots := map[string]alexakit.SimpleSlot{}
 
 	for _, slot := range intent.Slots {
-		value, err := searchSlotValueWithSynonyms(targetSlots, slot)
+		value, err := deviceControl.config.searchSlotValueWithSynonyms(targetSlots, slot)
 
 		if err != nil {
 			return simpleRequestIntent, errors.New("can not find the original supported slot value")
@@ -70,7 +70,7 @@ func NewSimpleRequestIntent(request alexakit.AlexaRequest) (alexakit.SimpleInten
 
 // searchSlotValueWithSynonyms searches for corresponding slot value, defined in intents json config. Compares not
 // only name but also synonyms if any defined
-func searchSlotValueWithSynonyms(targetSlots map[string]Slot, searchSlot alexakit.Slot) (string, error) {
+func (c *Config) searchSlotValueWithSynonyms(targetSlots map[string]Slot, searchSlot alexakit.Slot) (string, error) {
 	if _, ok := targetSlots[searchSlot.Name]; !ok {
 		return "", errors.New("slot not found")
 	}
@@ -78,7 +78,7 @@ func searchSlotValueWithSynonyms(targetSlots map[string]Slot, searchSlot alexaki
 	values := targetSlots[searchSlot.Name].Values
 
 	for _, value := range values {
-		if strings.EqualFold(value.Name, searchSlot.Value) || iContains(value.Synonyms, searchSlot.Value) {
+		if strings.EqualFold(value.Name, searchSlot.Value) || c.iContains(value.Synonyms, searchSlot.Value) {
 			return value.Name, nil
 		}
 	}
@@ -86,13 +86,13 @@ func searchSlotValueWithSynonyms(targetSlots map[string]Slot, searchSlot alexaki
 	return "", errors.New("no supported value found")
 }
 
-func findCommand(reqIntent alexakit.SimpleIntent) (Command, error) {
-	for _, command := range config.Commands {
-		if len(command.Intents) == 0 {
+func (c *Config) findCommand(reqIntent alexakit.SimpleIntent) (Command, error) {
+	for _, command := range c.Commands {
+		if len(c.Intents) == 0 {
 			continue
 		}
 
-		if hasMatchedIntent(command.Intents, reqIntent) {
+		if c.hasMatchedIntent(command.Intents, reqIntent) {
 			return command, nil
 		}
 	}
@@ -100,13 +100,13 @@ func findCommand(reqIntent alexakit.SimpleIntent) (Command, error) {
 	return Command{}, fmt.Errorf("command not found. Searched for: %s", reqIntent)
 }
 
-func findScenario(reqIntent alexakit.SimpleIntent) (Scenario, error) {
-	for _, scenario := range config.Scenarios {
+func (c *Config) findScenario(reqIntent alexakit.SimpleIntent) (Scenario, error) {
+	for _, scenario := range c.Scenarios {
 		if len(scenario.Intents) == 0 {
 			continue
 		}
 
-		if hasMatchedIntent(scenario.Intents, reqIntent) {
+		if c.hasMatchedIntent(scenario.Intents, reqIntent) {
 			return scenario, nil
 		}
 	}
@@ -114,13 +114,13 @@ func findScenario(reqIntent alexakit.SimpleIntent) (Scenario, error) {
 	return Scenario{}, fmt.Errorf("scenario not found. Searched for: %s", reqIntent)
 }
 
-func hasMatchedIntent(intents []CommandIntent, reqIntent alexakit.SimpleIntent) bool {
+func (c *Config) hasMatchedIntent(intents []CommandIntent, reqIntent alexakit.SimpleIntent) bool {
 	for i := 0; i < len(intents); i++ {
 		if intents[i].Name != reqIntent.Name {
 			continue
 		}
 
-		if hasMatchedSlots(intents[i].Slots, reqIntent.Slots) {
+		if c.hasMatchedSlots(intents[i].Slots, reqIntent.Slots) {
 			return true
 		}
 	}
@@ -128,7 +128,7 @@ func hasMatchedIntent(intents []CommandIntent, reqIntent alexakit.SimpleIntent) 
 	return false
 }
 
-func hasMatchedSlots(sourceSlots map[string]CommandSlot, lookupSlots map[string]alexakit.SimpleSlot) bool {
+func (c *Config) hasMatchedSlots(sourceSlots map[string]CommandSlot, lookupSlots map[string]alexakit.SimpleSlot) bool {
 	for _, lookupSlot := range lookupSlots {
 		if slot, ok := sourceSlots[lookupSlot.Name]; ok {
 			if !strings.EqualFold(slot.Value, lookupSlot.Value) {
@@ -142,7 +142,7 @@ func hasMatchedSlots(sourceSlots map[string]CommandSlot, lookupSlots map[string]
 	return true
 }
 
-func iContains(arr []string, val string) bool {
+func (c *Config) iContains(arr []string, val string) bool {
 	for i := 0; i < len(arr); i++ {
 		if strings.EqualFold(arr[i], val) {
 			return true
