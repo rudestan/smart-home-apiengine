@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
 type ServerConfig struct {
 	Protocol string
 	Address  string

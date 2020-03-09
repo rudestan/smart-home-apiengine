@@ -2,11 +2,12 @@ package apiserver
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
+
+	"github.com/gorilla/mux"
 )
 
 // handleRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
