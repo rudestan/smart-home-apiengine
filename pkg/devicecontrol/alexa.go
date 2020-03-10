@@ -21,7 +21,7 @@ func (deviceControl *DeviceControl) HandleAlexaRequest(reqIntent alexakit.Simple
 		return fmt.Errorf("scenario \"%s\" has no sequence items", scenario.Name)
 	}
 
-	cmd, err := deviceControl.config.findCommand(reqIntent)
+/*	cmd, err := deviceControl.config.findCommand(reqIntent)
 
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (deviceControl *DeviceControl) HandleAlexaRequest(reqIntent alexakit.Simple
 
 	if err != nil {
 		return err
-	}
+	}*/
 
 	return nil
 }
@@ -70,7 +70,7 @@ func (deviceControl *DeviceControl) NewSimpleRequestIntent(request alexakit.Alex
 
 // searchSlotValueWithSynonyms searches for corresponding slot value, defined in intents json config. Compares not
 // only name but also synonyms if any defined
-func (c *Config) searchSlotValueWithSynonyms(targetSlots map[string]Slot, searchSlot alexakit.Slot) (string, error) {
+func (c *Config) searchSlotValueWithSynonyms(targetSlots map[string]slot, searchSlot alexakit.Slot) (string, error) {
 	if _, ok := targetSlots[searchSlot.Name]; !ok {
 		return "", errors.New("slot not found")
 	}

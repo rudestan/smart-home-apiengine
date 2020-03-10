@@ -79,19 +79,29 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errorChan := make(chan error)
+
 	go func() {
-		err = s.dataProvider.ExecCommandFullCycle(cmd)
+		err = s.dataProvider.ExecCommandFullCycle(cmd, errorChan)
 
 		if err != nil {
 			log.Println(err)
 		}
 	}()
+	<- errorChan
+/*	execError := <-errorChan
 
-	_, err = io.WriteString(w, newSuccessResponse("command executed", nil))
+	var responseJson string
 
-	if err != nil {
-		log.Println(err)
+	if execError != nil {
+		responseJson = newErrorResponse(execError.Error())
+	} else {
+		responseJson = newSuccessResponse("command executed", nil)
 	}
+*/
+	responseJson := newSuccessResponse("command executed", nil)
+	writeResponseString(w, responseJson)
+
 }
 
 // handleRunScenario api action that accepts scenario id and tries to execute matched scenario
@@ -124,6 +134,14 @@ func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	_, err = io.WriteString(w, newSuccessResponse("scenario executed", nil))
+
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func writeResponseString(w http.ResponseWriter, responseString string)  {
+	_, err := io.WriteString(w, responseString)
 
 	if err != nil {
 		log.Println(err)

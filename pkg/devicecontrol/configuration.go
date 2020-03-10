@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 )
 
 // Device struct that stores all required for usage data
@@ -23,11 +24,11 @@ type Device struct {
 // Intent struct contains Alexa Intent's name and related slots
 type Intent struct {
 	Name  string          `json:"name"`
-	Slots map[string]Slot `json:"slots"`
+	Slots map[string]slot `json:"slots"`
 }
 
 // Slot struct contains name of the slot and possible values
-type Slot struct {
+type slot struct {
 	Name   string               `json:"name"`
 	Values map[string]SlotValue `json:"values"`
 }
@@ -103,6 +104,7 @@ type Config struct {
 	Groups    map[string]Group    `json:"groups"`
 	Controls  map[string]Control  `json:"controls"`
 	fileName  string
+	mutex 	  *sync.Mutex
 }
 
 func (c *Config) findDeviceByMac(deviceMac string) (*Device, error) {
@@ -162,12 +164,24 @@ func NewConfiguration(fileName string) (Config, error) {
 	}
 
 	config.fileName = fileName
+	config.mutex = &sync.Mutex{}
 
 	return config, nil
 }
 
+func (c *Config) saveUpdated() error {
+	if c.fileName == "" {
+		return errors.New("file name is empty")
+	}
+
+	return c.save(c.fileName)
+}
+
 // saveConfiguration saves the configuration to the provided filename
-func (c *Config) saveConfiguration(fileName string) error {
+func (c *Config) save(fileName string) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	fileInfo, err := os.Stat(fileName)
 	mode := os.FileMode(0666)
 	var jsonFile *os.File

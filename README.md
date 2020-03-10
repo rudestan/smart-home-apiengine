@@ -69,3 +69,12 @@ ToDo:
 - add some CI
 - Write documentation
 - visualise the toolset infrastructure
+
+Tools
+
+| Tool                                               | Description                                                                |
+|----------------------------------------------------|----------------------------------------------------------------------------|
+| [smh-configurator](cmd/configurator/)              | Manages the device control configuration JSON file                         |
+| [smh-webserver](cmd/webserver/)                    | API Webserver that receives an API calls and controls the devices          |
+| [smh-runner](cmd/runner/)                          | Command and scenario runner for running the provided commands              |
+| [smh-rmqproxyout](cmd/rmqproxyout/)                | Proxy tool for proxifying the json payload from the queue to some endpoint |
