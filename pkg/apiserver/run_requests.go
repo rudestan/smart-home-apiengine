@@ -80,7 +80,6 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errorChan := make(chan error)
-
 	go func() {
 		err = s.dataProvider.ExecCommandFullCycle(cmd, errorChan)
 
@@ -88,20 +87,16 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}()
-	<- errorChan
-/*	execError := <-errorChan
+	execError := <-errorChan
 
 	var responseJson string
-
 	if execError != nil {
 		responseJson = newErrorResponse(execError.Error())
 	} else {
-		responseJson = newSuccessResponse("command executed", nil)
+		responseJson = newSuccessResponse("command sent to device", nil)
 	}
-*/
-	responseJson := newSuccessResponse("command executed", nil)
-	writeResponseString(w, responseJson)
 
+	writeResponseString(w, responseJson)
 }
 
 // handleRunScenario api action that accepts scenario id and tries to execute matched scenario

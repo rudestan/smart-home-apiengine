@@ -1,11 +1,15 @@
 package devicecontrol
 
 import (
+	"errors"
 	"log"
 
 	"github.com/rudestan/broadlinkrm"
 	"github.com/spf13/cast"
 )
+
+
+var errorTryingExecute = errors.New("devicecontrol is trying to execute command")
 
 type lock struct {
 	locked bool
@@ -99,6 +103,8 @@ func (deviceControl *DeviceControl) ExecCommandFullCycle(command Command, errorC
 	device, err := deviceControl.config.findDeviceByMac(command.DeviceID)
 
 	if err != nil {
+		errorChan <- err
+
 		return err
 	}
 
@@ -120,11 +126,11 @@ func (deviceControl *DeviceControl) ExecCommandFullCycle(command Command, errorC
 // ExecCommandWithRetryAndDiscover executes the command on passed device, in case of failure calls the execution
 // with device discovering
 func (deviceControl *DeviceControl) ExecCommandWithRetryAndDiscover(device *Device, command Command, errorChan chan error) error {
-/*	if deviceControl.Locked() {
-		errorChan <- errors.New("Devicecontrol is trying to execute command")
+	if deviceControl.Locked() {
+		errorChan <- errorTryingExecute
 
-		return errors.New("Devicecontrol is trying to execute command")
-	}*/
+		return errorTryingExecute
+	}
 
 	log.Printf("Executing a command on device: %s (%s, %s)\n", device.Name, device.IP, device.Mac)
 
@@ -150,9 +156,10 @@ func (deviceControl *DeviceControl) execCommand(mac string, code string) error  
 
 // ExecCommandWithDiscover executes the command on passed device
 func (deviceControl *DeviceControl) ExecCommandWithDiscover(device *Device, command Command, execChan chan error) error {
+	deviceControl.Lock()
+	defer deviceControl.Unlock()
+
 	log.Printf("Discovering the devices")
-/*	deviceControl.Lock()
-	defer deviceControl.Unlock()*/
 
 	execChan <- nil
 
