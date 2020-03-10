@@ -134,9 +134,7 @@ func (deviceControl *DeviceControl) ExecCommandWithRetryAndDiscover(device *Devi
 
 	log.Printf("Executing a command on device: %s (%s, %s)\n", device.Name, device.IP, device.Mac)
 
-	errorChan <- nil
-
-	err := deviceControl.execCommand(device.Mac, command.Code)
+	err := deviceControl.execCommand(device.Mac, command.Code, errorChan)
 
 	if err == nil {
 		return err
@@ -147,9 +145,11 @@ func (deviceControl *DeviceControl) ExecCommandWithRetryAndDiscover(device *Devi
 	return deviceControl.ExecCommandWithDiscover(device, command, errorChan)
 }
 
-func (deviceControl *DeviceControl) execCommand(mac string, code string) error  {
+func (deviceControl *DeviceControl) execCommand(mac string, code string, errorChan chan error) error  {
 	deviceControl.Lock()
 	defer deviceControl.Unlock()
+
+	errorChan <- nil
 
 	return deviceControl.broadlink.Execute(mac, code)
 }
@@ -168,8 +168,6 @@ func (deviceControl *DeviceControl) ExecCommandWithDiscover(device *Device, comm
 
 	if err != nil {
 		return err
-	} else {
-		log.Println("sdfsdf")
 	}
 
 	return deviceControl.broadlink.Execute(device.Mac, command.Code)
