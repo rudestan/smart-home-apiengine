@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 )
 
 // Device struct that stores all required for usage data
@@ -103,6 +104,7 @@ type Config struct {
 	Groups    map[string]Group    `json:"groups"`
 	Controls  map[string]Control  `json:"controls"`
 	fileName  string
+	sync.Mutex
 }
 
 func (c *Config) findDeviceByMac(deviceMac string) (*Device, error) {
@@ -168,6 +170,9 @@ func NewConfiguration(fileName string) (Config, error) {
 
 // saveConfiguration saves the configuration to the provided filename
 func (c *Config) saveConfiguration(fileName string) error {
+	c.Lock()
+	defer c.Unlock()
+
 	fileInfo, err := os.Stat(fileName)
 	mode := os.FileMode(0666)
 	var jsonFile *os.File

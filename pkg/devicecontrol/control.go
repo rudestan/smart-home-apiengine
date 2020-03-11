@@ -1,16 +1,15 @@
 package devicecontrol
 
 import (
-	"log"
-	"time"
-
 	"github.com/rudestan/broadlinkrm"
 	"github.com/spf13/cast"
+	"log"
 )
 
 type DeviceControl struct {
-	config Config
+	config *Config
 	broadlink broadlinkrm.Broadlink
+	lock *lock
 }
 
 func NewDeviceControl(configFile string) (DeviceControl, error)  {
@@ -21,8 +20,9 @@ func NewDeviceControl(configFile string) (DeviceControl, error)  {
 	}
 
 	deviceControl := DeviceControl{
-		config:    config,
+		config:    &config,
 		broadlink: broadlinkrm.NewBroadlink(),
+		lock: 	   &lock{locked:false},
 	}
 
 	if len(config.Devices) > 0 {
@@ -45,101 +45,6 @@ func (deviceControl *DeviceControl) FindScenarioByName(name string) (Scenario, e
 // AllControls returns controls from config
 func (deviceControl *DeviceControl) AllControls() map[string]Control {
 	return deviceControl.config.Controls
-}
-
-// ExecScenarioFullCycle executes scenario full cycle with commands one after another, including the delay
-func (deviceControl *DeviceControl) ExecScenarioFullCycle(scenario Scenario) error {
-	log.Printf("Executing scenario \"%s\" with %d sequence items", scenario.Name, len(scenario.Sequence))
-
-	for _, sequenceItem := range scenario.Sequence {
-		log.Printf("Executing sequence item \"%s\"", sequenceItem.Name)
-
-		cmd, err := deviceControl.config.findCommandByID(sequenceItem.Name)
-
-		if err != nil {
-			return err
-		}
-
-		err = deviceControl.ExecCommandFullCycle(cmd)
-
-		if err != nil {
-			return err
-		}
-
-		if sequenceItem.Delay > 0 {
-			log.Printf("Sleeping %d seconds\n", sequenceItem.Delay)
-			time.Sleep(time.Second * time.Duration(sequenceItem.Delay))
-		}
-	}
-
-	return nil
-}
-
-// ExecCommandFullCycle executes the command in full cycle with retry and discover, as well as updating and saving
-// the device data
-func (deviceControl *DeviceControl) ExecCommandFullCycle(command Command) error {
-	device, err := deviceControl.config.findDeviceByMac(command.DeviceID)
-
-	if err != nil {
-		return err
-	}
-
-	err = deviceControl.ExecCommandWithRetryAndDiscover(device, command)
-
-	if err != nil {
-		return err
-	}
-
-	err = deviceControl.updateAndSaveMatchedDiscoveredDevice(device)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ExecCommandWithRetryAndDiscover executes the command on passed device, in case of failure calls the execution
-// with device discovering
-func (deviceControl *DeviceControl) ExecCommandWithRetryAndDiscover(device *Device, command Command) error {
-	log.Printf("Executing a command on device: %s (%s, %s)\n", device.Name, device.IP, device.Mac)
-	err := deviceControl.broadlink.Execute(device.Mac, command.Code)
-
-	if err == nil {
-		return err
-	}
-
-	log.Printf("Failed to execute a command, will retry with discovering: %s\n", err)
-
-	return deviceControl.ExecCommandWithDiscover(device, command)
-}
-
-// ExecCommandWithDiscover executes the command on passed device
-func (deviceControl *DeviceControl) ExecCommandWithDiscover(device *Device, command Command) error {
-	deviceControl.broadlink = broadlinkrm.NewBroadlink()
-	err := deviceControl.broadlink.Discover()
-
-	if err != nil {
-		return err
-	}
-
-	return deviceControl.broadlink.Execute(device.Mac, command.Code)
-}
-
-func  (deviceControl *DeviceControl) updateAndSaveMatchedDiscoveredDevice(device *Device) error {
-	deviceInfo, err := deviceControl.broadlink.GetDeviceInfo(device.Mac)
-
-	if err != nil {
-		return err
-	}
-
-	device.ID = deviceInfo.Id
-	device.IP = deviceInfo.Ip
-	device.Mac = deviceInfo.Mac
-	device.DeviceType = deviceInfo.DeviceType
-	device.Key = deviceInfo.Key
-
-	return deviceControl.config.saveConfiguration(deviceControl.config.fileName)
 }
 
 func (deviceControl *DeviceControl) initDevices() {
