@@ -4,21 +4,30 @@ package devicecontrol
 // meets the requirements since goroutines waiting until mutex is unlocked and then continues execution. This is not
 // our case since the routines must be executed anyway without waiting but the long running process (e.g. execution
 // of the command on unavailable device or device discovering) should be blocked from execution more than once
-type lock struct {
-	locked bool
+import (
+	"runtime"
+	"sync/atomic"
+)
+
+const (
+	unlocked int32 = iota
+	locked
+)
+
+type spinLock struct {
+	state int32
+}
+func (lock *spinLock) Lock() {
+	for !atomic.CompareAndSwapInt32(&lock.state, unlocked, locked) {
+		runtime.Gosched()
+	}
+}
+func (lock *spinLock) Unlock() {
+	for !atomic.CompareAndSwapInt32(&lock.state, locked, unlocked) {
+		runtime.Gosched()
+	}
 }
 
-// Lock sets lock to true
-func (deviceControl *DeviceControl) Lock() {
-	deviceControl.lock.locked = true
-}
-
-// Unlock sets lock to false
-func (deviceControl *DeviceControl) Unlock() {
-	deviceControl.lock.locked = false
-}
-
-// Locked returns the state of lock
-func (deviceControl *DeviceControl) Locked() bool {
-	return deviceControl.lock.locked
+func (lock *spinLock) Locked() bool  {
+	return lock.state == locked
 }

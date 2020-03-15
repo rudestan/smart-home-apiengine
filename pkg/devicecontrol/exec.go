@@ -78,13 +78,13 @@ func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Devi
 // discover function discovers the devices, this operation is time consuming and should be executed only once (for
 // example from some goroutine).
 func (deviceControl *DeviceControl) discover() error {
-	if deviceControl.Locked() {
+	if deviceControl.lock.Locked() {
 		log.Println("device control is locked, can not discover")
 		return nil
 	}
 
-	deviceControl.Lock()
-	defer deviceControl.Unlock()
+	deviceControl.lock.Lock()
+	defer deviceControl.lock.Unlock()
 
 	deviceControl.broadlink = broadlinkrm.NewBroadlink()
 	err := deviceControl.broadlink.Discover()
@@ -99,13 +99,13 @@ func (deviceControl *DeviceControl) discover() error {
 // execCommand executes command on the device, should not be during lock. The operation can be time consuming in
 // case the device is not available on the network. It will fail on timeout.
 func (deviceControl *DeviceControl) execCommand(mac string, code string) error  {
-	if deviceControl.Locked() {
+	if deviceControl.lock.Locked() {
 		log.Println("device control is locked, can not execute command")
 		return nil
 	}
 
-	deviceControl.Lock()
-	defer deviceControl.Unlock()
+	deviceControl.lock.Lock()
+	defer deviceControl.lock.Unlock()
 
 	err := deviceControl.broadlink.Execute(mac, code)
 

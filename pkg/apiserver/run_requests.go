@@ -63,7 +63,6 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	commandID := vars["commandId"]
-
 	cmd, err := s.dataProvider.FindCommandByID(commandID)
 
 	if err != nil {

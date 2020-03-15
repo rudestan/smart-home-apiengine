@@ -9,7 +9,7 @@ import (
 type DeviceControl struct {
 	config *Config
 	broadlink broadlinkrm.Broadlink
-	lock *lock
+	lock *spinLock
 }
 
 func NewDeviceControl(configFile string) (DeviceControl, error)  {
@@ -22,7 +22,7 @@ func NewDeviceControl(configFile string) (DeviceControl, error)  {
 	deviceControl := DeviceControl{
 		config:    &config,
 		broadlink: broadlinkrm.NewBroadlink(),
-		lock: 	   &lock{locked:false},
+		lock: 	   &spinLock{},
 	}
 
 	if len(config.Devices) > 0 {
