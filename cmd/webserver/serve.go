@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"os"
 	"path"
@@ -129,11 +130,13 @@ func runServer(serverConfig apiserver.ServerConfig, deviceControl devicecontrol.
 		}
 	}
 
+	server := apiserver.NewServer(serverConfig, mux.NewRouter(), &apiserver.Server{}, deviceControl)
+
 	switch serverConfig.Protocol {
 	case "http":
-		apiserver.ServeHTTP(serverConfig, deviceControl)
+		apiserver.ServeHTTP(server)
 	case "https":
-		apiserver.ServeHTTPS(serverConfig, deviceControl)
+		apiserver.ServeHTTPS(server)
 	}
 
 	return nil

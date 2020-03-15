@@ -4,7 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
-	"smh-apiengine/pkg/rmqproc"
+	"smh-apiengine/pkg/amqp"
 )
 
 const (
@@ -19,8 +19,8 @@ const (
 const apiEndpoint = "http://localhost:8787/run/intent"
 
 func main() {
-	var rmqConfig rmqproc.RmqConfig
-	var msgHandler rmqproc.Handler
+	var rmqConfig amqp.Config
+	var msgHandler amqp.Handler
 	var logFile string
 
 	app := &cli.App{
@@ -94,7 +94,8 @@ func main() {
 			},
 		},
 		Action: func(context *cli.Context) error {
-			rmqproc.Consume(rmqConfig, msgHandler)
+			rmqProc := amqp.NewRmq(&rmqConfig)
+			rmqProc.Consume(msgHandler)
 
 			return nil
 		},

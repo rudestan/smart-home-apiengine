@@ -12,7 +12,7 @@ const (
 	bearerPrefix        = "Bearer "
 )
 
-func (s *server) authTokenMiddleware(next http.Handler) http.Handler {
+func (s *Server) authTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if s.config.Token == "" || s.isTokenValid(r.Header.Get(headerAuthorization)) {
 			next.ServeHTTP(w, r)
@@ -30,7 +30,7 @@ func (s *server) authTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) isTokenValid(authHeader string) bool {
+func (s *Server) isTokenValid(authHeader string) bool {
 	if len(authHeader) > 0 && strings.HasPrefix(authHeader, bearerPrefix) {
 		return s.config.Token == strings.TrimPrefix(authHeader, bearerPrefix)
 	}

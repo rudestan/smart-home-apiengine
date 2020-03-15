@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"smh-apiengine/pkg/devicecontrol"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -19,15 +18,19 @@ type ServerConfig struct {
 	TLSKey   string
 }
 
-type server struct {
+type ServerRoutes interface {
+	Init(r *mux.Router)
+}
+
+type Server struct {
 	router *mux.Router
 	config ServerConfig
 	server *http.Server
-	dataProvider devicecontrol.DeviceControl
+	dataProvider interface{}
 }
 
-func newServer(serverConfig ServerConfig, router *mux.Router, control devicecontrol.DeviceControl) *server {
-	server := &server{
+func NewServer(serverConfig ServerConfig, router *mux.Router, routes ServerRoutes, dataProvider interface{}) *Server {
+	server := &Server{
 		router: router,
 		config: serverConfig,
 		server: &http.Server{
@@ -36,49 +39,31 @@ func newServer(serverConfig ServerConfig, router *mux.Router, control devicecont
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		},
-		dataProvider: control,
+		dataProvider: dataProvider,
 	}
 
-	server.routes()
+	routes.Init(router)
 
 	return server
 }
 
-func (s *server) routes() {
-	s.router.NotFoundHandler = http.HandlerFunc(s.handleNotFound)
-	s.router.Use(s.headersMiddleware)
-	s.router.Use(s.authTokenMiddleware)
-
-	// Run routes
-	s.router.HandleFunc("/run/command/{commandId}", s.handleRunCommand)
-	s.router.HandleFunc("/run/scenario/{scenarioId}", s.handleRunScenario)
-	s.router.HandleFunc("/run/intent", s.handleRunIntent).Methods("POST")
-
-	// Api routes
-	s.router.HandleFunc("/controls", s.handleControls)
+// ServeHTTP runs http server
+func ServeHTTP(s *Server) {
+	s.logProcess()
+	log.Println(s.server.ListenAndServe())
 }
 
-func (s *server) logProcess()  {
-	log.Printf("%s api server is listening requests on %s:%d\n",
+// ServeHTTPS runs https server using provided TLS certificate and key
+func ServeHTTPS(s *Server) {
+	s.logProcess()
+	log.Println(s.server.ListenAndServeTLS(s.config.TLSCert, s.config.TLSKey))
+}
+
+func (s *Server) logProcess()  {
+	log.Printf("%s server is listening requests on %s:%d\n",
 		s.config.Protocol, s.config.Address, s.config.Port)
 
 	if s.config.Token != "" {
 		log.Printf("Requests should use the following token: \"%s\"\n", s.config.Token)
 	}
-}
-
-// ServeHTTP runs http server
-func ServeHTTP(serverConfig ServerConfig, control devicecontrol.DeviceControl) {
-	srv := newServer(serverConfig, mux.NewRouter(), control)
-
-	srv.logProcess()
-	log.Println(srv.server.ListenAndServe())
-}
-
-// ServeHTTPS runs https server using provided TLS certificate and key
-func ServeHTTPS(serverConfig ServerConfig, control devicecontrol.DeviceControl) {
-	srv := newServer(serverConfig, mux.NewRouter(), control)
-
-	srv.logProcess()
-	log.Println(srv.server.ListenAndServeTLS(serverConfig.TLSCert, serverConfig.TLSKey))
 }

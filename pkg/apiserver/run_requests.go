@@ -6,12 +6,13 @@ import (
 	"log"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
+	"smh-apiengine/pkg/devicecontrol"
 
 	"github.com/gorilla/mux"
 )
 
 // handleRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
-func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	alexaRequestIntent, err := alexakit.NewAlexaRequestIntent(r)
@@ -28,7 +29,8 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	simpleAlexaIntent, err := s.dataProvider.NewSimpleRequestIntent(alexaRequestIntent)
+	dc := s.dataProvider.(devicecontrol.DeviceControl)
+	simpleAlexaIntent, err := dc.NewSimpleRequestIntent(alexaRequestIntent)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, newErrorResponse("Failed to create a simple alexa request intent"))
@@ -43,7 +45,7 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = s.dataProvider.HandleAlexaRequest(simpleAlexaIntent)
+		err = dc.HandleAlexaRequest(simpleAlexaIntent)
 
 		if err != nil {
 			log.Println(err)
@@ -58,12 +60,13 @@ func (s *server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleRunCommand api action that accepts command id and tries to execute matched command
-func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
 	commandID := vars["commandId"]
-	cmd, err := s.dataProvider.FindCommandByID(commandID)
+	dc := s.dataProvider.(devicecontrol.DeviceControl)
+	cmd, err := dc.FindCommandByID(commandID)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, newErrorResponse(
@@ -79,7 +82,7 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = s.dataProvider.ExecCommandFullCycle(cmd)
+		err = dc.ExecCommandFullCycle(cmd)
 
 		if err != nil {
 			log.Println(err)
@@ -94,12 +97,13 @@ func (s *server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleRunScenario api action that accepts scenario id and tries to execute matched scenario
-func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
 	scenarioID := vars["scenarioId"]
-	scenario, err := s.dataProvider.FindScenarioByName(scenarioID)
+	dc := s.dataProvider.(devicecontrol.DeviceControl)
+	scenario, err := dc.FindScenarioByName(scenarioID)
 
 	if err != nil {
 		_, ioErr := io.WriteString(w, newErrorResponse(
@@ -115,7 +119,7 @@ func (s *server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = s.dataProvider.ExecScenarioFullCycle(scenario)
+		err = dc.ExecScenarioFullCycle(scenario)
 
 		if err != nil {
 			log.Println(err)

@@ -1,4 +1,4 @@
-package rmqproc
+package amqp
 
 import (
 	"bytes"

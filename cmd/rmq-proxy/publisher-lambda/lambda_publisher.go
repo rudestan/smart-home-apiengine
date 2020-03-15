@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/aws/aws-lambda-go/lambda"
-	"smh-apiengine/pkg/rmqproc"
 )
 
 type MyEvent struct {
@@ -16,17 +14,17 @@ type Response struct {
 }
 
 func HandleLambdaEvent(event MyEvent) (Response, error) {
-	payload, err := json.Marshal(event)
+/*	payload, err := json.Marshal(event)
 
 	if err != nil {
 		return Response{Message: "Failed to encode JSON"}, err
 	}
 
-	err = rmqproc.PublishPayloadToRmq(string(payload))
+	err = rmqproc.Publish(string(payload))
 
 	if err != nil {
 		return Response{Message: "Failed to Publish payload!"}, err
-	}
+	}*/
 
 	return Response{Message: "Payload published, check RMQ"}, nil
 }
