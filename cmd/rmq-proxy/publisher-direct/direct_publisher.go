@@ -167,7 +167,7 @@ func runServer(serverConfig *webserver.ServerConfig, rmqConfig *amqp.Config) err
 		}
 	}
 
-	directPublisher := directpublisher.NewDirectPublisher(rmqConfig, serverConfig)
+	directPublisher := directpublisher.NewDirectPublisher(rmqConfig)
 	server := webserver.NewServer(serverConfig, directPublisher)
 	switch serverConfig.Protocol {
 	case "http":

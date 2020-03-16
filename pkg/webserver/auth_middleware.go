@@ -18,9 +18,13 @@ type ResultResponse struct {
 	Message string `json:"message"`
 }
 
-func (m *Middleware) AuthTokenMiddleware(next http.Handler) http.Handler {
+type AuthMiddleware struct {
+	Token string
+}
+
+func (am *AuthMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if m.config.Token == "" || m.isTokenValid(m.config.Token, r.Header.Get(headerAuthorization)) {
+		if am.Token == "" || am.isTokenValid(am.Token, r.Header.Get(headerAuthorization)) {
 			next.ServeHTTP(w, r)
 
 			return
@@ -36,7 +40,7 @@ func (m *Middleware) AuthTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) isTokenValid(token string, authHeader string) bool {
+func (am *AuthMiddleware) isTokenValid(token string, authHeader string) bool {
 	if len(authHeader) > 0 && strings.HasPrefix(authHeader, bearerPrefix) {
 		return token == strings.TrimPrefix(authHeader, bearerPrefix)
 	}

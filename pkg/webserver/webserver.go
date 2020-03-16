@@ -18,7 +18,7 @@ type ServerConfig struct {
 	TLSKey   string
 }
 
-type RouteHandlers interface {
+type Routing interface {
 	Router() *mux.Router
 	InitRoutes()
 }
@@ -28,8 +28,11 @@ type server struct {
 	server *http.Server
 }
 
-func NewServer(serverConfig *ServerConfig, routeHandlers interface{}) *server {
-	rHandlers := routeHandlers.(RouteHandlers)
+func NewServer(serverConfig *ServerConfig, routing interface{}) *server {
+	rHandlers := routing.(Routing)
+
+	rHandlers.InitRoutes()
+
 	server := &server{
 		config: serverConfig,
 		server: &http.Server{
@@ -39,8 +42,6 @@ func NewServer(serverConfig *ServerConfig, routeHandlers interface{}) *server {
 			ReadTimeout:  15 * time.Second,
 		},
 	}
-
-	rHandlers.InitRoutes()
 
 	return server
 }

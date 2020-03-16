@@ -9,14 +9,20 @@ import (
 
 type ApiRouteHandlers struct {
 	dataProvider *devicecontrol.DeviceControl
-	middleWare *s.Middleware
+	middleware []func(http.Handler) http.Handler
 	router *mux.Router
 }
 
 func NewApiRouteHandlers(config *s.ServerConfig, deviceControl *devicecontrol.DeviceControl) *ApiRouteHandlers  {
+	authMiddleware := s.AuthMiddleware{Token:config.Token}
+
+	middleware := []func(http.Handler) http.Handler{
+		s.HeadersMiddleware,
+		authMiddleware.AuthTokenMiddleware}
+
 	return &ApiRouteHandlers{
 		dataProvider: deviceControl,
-		middleWare:s.NewMiddleware(config),
+		middleware:middleware,
 		router:mux.NewRouter()}
 }
 
@@ -26,8 +32,10 @@ func (apiHandlers *ApiRouteHandlers) Router() *mux.Router  {
 
 func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
 	apiHandlers.router.NotFoundHandler = http.HandlerFunc(apiHandlers.HandleNotFound)
-	apiHandlers.router.Use(apiHandlers.middleWare.HeadersMiddleware)
-	apiHandlers.router.Use(apiHandlers.middleWare.AuthTokenMiddleware)
+
+	for _, middlewareFunc := range apiHandlers.middleware {
+		apiHandlers.router.Use(middlewareFunc)
+	}
 
 	// Run routes
 	apiHandlers.router.HandleFunc("/run/command/{commandId}", apiHandlers.handleRunCommand)
