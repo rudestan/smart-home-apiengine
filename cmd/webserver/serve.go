@@ -7,8 +7,9 @@ import (
 	"log"
 	"os"
 	"path"
-	"smh-apiengine/pkg/apiserver"
 	"smh-apiengine/pkg/devicecontrol"
+	"smh-apiengine/pkg/webapi"
+	"smh-apiengine/pkg/webserver"
 
 	"github.com/urfave/cli/v2"
 )
@@ -22,7 +23,7 @@ const (
 func main() {
 	var configFile string
 	var logFile string
-	var srvConfig apiserver.ServerConfig
+	var srvConfig webserver.ServerConfig
 
 	execName, err := os.Executable()
 
@@ -113,7 +114,7 @@ func main() {
 				return err
 			}
 
-			return runServer(srvConfig, deviceControl)
+			return runServer(&srvConfig, &deviceControl)
 		},
 	}
 
@@ -123,20 +124,21 @@ func main() {
 	}
 }
 
-func runServer(serverConfig apiserver.ServerConfig, deviceControl devicecontrol.DeviceControl) error {
+func runServer(serverConfig *webserver.ServerConfig, deviceControl *devicecontrol.DeviceControl) error {
 	if serverConfig.Protocol == "https" {
 		if serverConfig.TLSCert == "" || serverConfig.TLSKey == "" {
 			return errors.New("TLS Certificate and Key files are required when using https protocol")
 		}
 	}
 
-	server := apiserver.NewServer(serverConfig, mux.NewRouter(), &apiserver.Server{}, deviceControl)
+	apiRouteHandlers := webapi.NewApiRouteHandlers(serverConfig, deviceControl)
+	server := webserver.NewServer(serverConfig, mux.NewRouter(), &apiRouteHandlers)
 
 	switch serverConfig.Protocol {
 	case "http":
-		apiserver.ServeHTTP(server)
+		server.ServeHTTP()
 	case "https":
-		apiserver.ServeHTTPS(server)
+		server.ServeHTTPS()
 	}
 
 	return nil

@@ -3,14 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"path"
-	"smh-apiengine/pkg/apiserver"
-	"smh-apiengine/pkg/directpublisher"
 	"smh-apiengine/pkg/amqp"
+	"smh-apiengine/pkg/directpublisher"
+	"smh-apiengine/pkg/webserver"
+
+	"github.com/gorilla/mux"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -31,7 +32,7 @@ const (
 
 func main() {
 	var logFile string
-	var srvConfig apiserver.ServerConfig
+	var srvConfig webserver.ServerConfig
 	var rmqConfig amqp.Config
 
 	execName, err := os.Executable()
@@ -150,7 +151,7 @@ func main() {
 				}
 			}
 
-			return runServer(srvConfig, rmqConfig)
+			return runServer(&srvConfig, &rmqConfig)
 		},
 	}
 
@@ -160,20 +161,20 @@ func main() {
 	}
 }
 
-func runServer(serverConfig apiserver.ServerConfig, rmqConfig amqp.Config) error {
+func runServer(serverConfig *webserver.ServerConfig, rmqConfig *amqp.Config) error {
 	if serverConfig.Protocol == "https" {
 		if serverConfig.TLSCert == "" || serverConfig.TLSKey == "" {
 			return errors.New("TLS Certificate and Key files are required when using https protocol")
 		}
 	}
 
-	directPublisher := directpublisher.NewDirectPublisher(&rmqConfig)
-	server := apiserver.NewServer(serverConfig, mux.NewRouter(), directPublisher, nil)
+	directPublisher := directpublisher.NewDirectPublisher(rmqConfig, serverConfig)
+	server := webserver.NewServer(serverConfig, mux.NewRouter(), directPublisher)
 	switch serverConfig.Protocol {
 	case "http":
-		apiserver.ServeHTTP(server)
+		server.ServeHTTP()
 	case "https":
-		apiserver.ServeHTTPS(server)
+		server.ServeHTTPS()
 	}
 
 	return nil

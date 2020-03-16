@@ -47,4 +47,3 @@ func (dp *DirectPublisher) AlexaTextResponse(w http.ResponseWriter) {
 		log.Println(err)
 	}
 }
-

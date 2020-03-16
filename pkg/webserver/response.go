@@ -1,4 +1,4 @@
-package apiserver
+package webserver
 
 import (
 	"encoding/json"
@@ -11,14 +11,14 @@ const (
 )
 
 // APIResultResponseWithPayload api response with some additional payload
-type APIResultResponseWithPayload struct {
+type ResponseWithPayload struct {
 	Result  string      `json:"result"`
 	Message string      `json:"message"`
 	Payload interface{} `json:"payload"`
 }
 
 // APIResultResponse api response for messages without payload
-type APIResultResponse struct {
+type Response struct {
 	Result  string `json:"result"`
 	Message string `json:"message"`
 }
@@ -28,9 +28,9 @@ func newResponse(result string, msg string, payload interface{}) string {
 	var resp interface{}
 
 	if payload != nil {
-		resp = APIResultResponseWithPayload{Result: result, Message: msg, Payload: payload}
+		resp = ResponseWithPayload{Result: result, Message: msg, Payload: payload}
 	} else {
-		resp = APIResultResponse{Result: result, Message: msg}
+		resp = Response{Result: result, Message: msg}
 	}
 
 	jsonResp, err := json.Marshal(resp)
@@ -45,11 +45,11 @@ func newResponse(result string, msg string, payload interface{}) string {
 }
 
 // newSuccessResponse creates success response
-func newSuccessResponse(msg string, payload interface{}) string {
+func NewSuccessResponse(msg string, payload interface{}) string {
 	return newResponse(responseSuccess, msg, payload)
 }
 
-// newErrorResponse creates an error response
-func newErrorResponse(msg string) string {
+// NewErrorResponse creates an error response
+func NewErrorResponse(msg string) string {
 	return newResponse(responseError, msg, nil)
 }

@@ -1,4 +1,4 @@
-package apiserver
+package webapi
 
 import (
 	"fmt"
@@ -6,19 +6,19 @@ import (
 	"log"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
-	"smh-apiengine/pkg/devicecontrol"
+	"smh-apiengine/pkg/webserver"
 
 	"github.com/gorilla/mux"
 )
 
 // handleRunIntent api action that accepts alexa request JSON and tries to execute matched scenario or command
-func (s *Server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
+func (apiHandlers *ApiRouteHandlers) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	alexaRequestIntent, err := alexakit.NewAlexaRequestIntent(r)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, newErrorResponse("Failed to accept POST body of alexa intent"))
+		_, ioErr := io.WriteString(w, webserver.NewErrorResponse("Failed to accept POST body of alexa intent"))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -29,11 +29,10 @@ func (s *Server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dc := s.dataProvider.(devicecontrol.DeviceControl)
-	simpleAlexaIntent, err := dc.NewSimpleRequestIntent(alexaRequestIntent)
+	simpleAlexaIntent, err := apiHandlers.dataProvider.NewSimpleRequestIntent(alexaRequestIntent)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, newErrorResponse("Failed to create a simple alexa request intent"))
+		_, ioErr := io.WriteString(w, webserver.NewErrorResponse("Failed to create a simple alexa request intent"))
 
 		if ioErr != nil {
 			log.Println(ioErr)
@@ -45,14 +44,14 @@ func (s *Server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = dc.HandleAlexaRequest(simpleAlexaIntent)
+		err = apiHandlers.dataProvider.HandleAlexaRequest(simpleAlexaIntent)
 
 		if err != nil {
 			log.Println(err)
 		}
 	}()
 
-	_, err = io.WriteString(w, newSuccessResponse("intent executed", nil))
+	_, err = io.WriteString(w, webserver.NewSuccessResponse("intent executed", nil))
 
 	if err != nil {
 		log.Println(err)
@@ -60,16 +59,15 @@ func (s *Server) handleRunIntent(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleRunCommand api action that accepts command id and tries to execute matched command
-func (s *Server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
+func (apiHandlers *ApiRouteHandlers) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
 	commandID := vars["commandId"]
-	dc := s.dataProvider.(devicecontrol.DeviceControl)
-	cmd, err := dc.FindCommandByID(commandID)
+	cmd, err := apiHandlers.dataProvider.FindCommandByID(commandID)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, newErrorResponse(
+		_, ioErr := io.WriteString(w, webserver.NewErrorResponse(
 			fmt.Sprintf("Command with id %s was not found", commandID)))
 
 		if ioErr != nil {
@@ -82,14 +80,14 @@ func (s *Server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = dc.ExecCommandFullCycle(cmd)
+		err = apiHandlers.dataProvider.ExecCommandFullCycle(cmd)
 
 		if err != nil {
 			log.Println(err)
 		}
 	}()
 
-	_, err = io.WriteString(w, newSuccessResponse("command executed", nil))
+	_, err = io.WriteString(w, webserver.NewSuccessResponse("command executed", nil))
 
 	if err != nil {
 		log.Println(err)
@@ -97,16 +95,15 @@ func (s *Server) handleRunCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleRunScenario api action that accepts scenario id and tries to execute matched scenario
-func (s *Server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
+func (apiHandlers *ApiRouteHandlers) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	vars := mux.Vars(r)
 	scenarioID := vars["scenarioId"]
-	dc := s.dataProvider.(devicecontrol.DeviceControl)
-	scenario, err := dc.FindScenarioByName(scenarioID)
+	scenario, err := apiHandlers.dataProvider.FindScenarioByName(scenarioID)
 
 	if err != nil {
-		_, ioErr := io.WriteString(w, newErrorResponse(
+		_, ioErr := io.WriteString(w, webserver.NewErrorResponse(
 			fmt.Sprintf("Scenario with id %s was not found", scenarioID)))
 
 		if ioErr != nil {
@@ -119,14 +116,14 @@ func (s *Server) handleRunScenario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err = dc.ExecScenarioFullCycle(scenario)
+		err = apiHandlers.dataProvider.ExecScenarioFullCycle(scenario)
 
 		if err != nil {
 			log.Println(err)
 		}
 	}()
 
-	_, err = io.WriteString(w, newSuccessResponse("scenario executed", nil))
+	_, err = io.WriteString(w, webserver.NewSuccessResponse("scenario executed", nil))
 
 	if err != nil {
 		log.Println(err)

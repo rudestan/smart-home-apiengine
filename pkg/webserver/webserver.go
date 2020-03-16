@@ -1,4 +1,4 @@
-package apiserver
+package webserver
 
 import (
 	"fmt"
@@ -18,18 +18,17 @@ type ServerConfig struct {
 	TLSKey   string
 }
 
-type ServerRoutes interface {
+type RouteHandlers interface {
 	Init(r *mux.Router)
 }
 
 type Server struct {
 	router *mux.Router
-	config ServerConfig
+	config *ServerConfig
 	server *http.Server
-	dataProvider interface{}
 }
 
-func NewServer(serverConfig ServerConfig, router *mux.Router, routes ServerRoutes, dataProvider interface{}) *Server {
+func NewServer(serverConfig *ServerConfig, router *mux.Router, handlers RouteHandlers) *Server {
 	server := &Server{
 		router: router,
 		config: serverConfig,
@@ -39,22 +38,21 @@ func NewServer(serverConfig ServerConfig, router *mux.Router, routes ServerRoute
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		},
-		dataProvider: dataProvider,
 	}
 
-	routes.Init(router)
+	handlers.Init(router)
 
 	return server
 }
 
 // ServeHTTP runs http server
-func ServeHTTP(s *Server) {
+func (s *Server) ServeHTTP() {
 	s.logProcess()
 	log.Println(s.server.ListenAndServe())
 }
 
 // ServeHTTPS runs https server using provided TLS certificate and key
-func ServeHTTPS(s *Server) {
+func (s *Server) ServeHTTPS() {
 	s.logProcess()
 	log.Println(s.server.ListenAndServeTLS(s.config.TLSCert, s.config.TLSKey))
 }
