@@ -19,45 +19,45 @@ type ServerConfig struct {
 }
 
 type RouteHandlers interface {
-	Init(r *mux.Router)
+	Router() *mux.Router
+	InitRoutes()
 }
 
-type Server struct {
-	router *mux.Router
+type server struct {
 	config *ServerConfig
 	server *http.Server
 }
 
-func NewServer(serverConfig *ServerConfig, router *mux.Router, handlers RouteHandlers) *Server {
-	server := &Server{
-		router: router,
+func NewServer(serverConfig *ServerConfig, routeHandlers interface{}) *server {
+	rHandlers := routeHandlers.(RouteHandlers)
+	server := &server{
 		config: serverConfig,
 		server: &http.Server{
-			Handler:      router,
+			Handler:      rHandlers.Router(),
 			Addr:         fmt.Sprintf("%s:%d", serverConfig.Address, serverConfig.Port),
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		},
 	}
 
-	handlers.Init(router)
+	rHandlers.InitRoutes()
 
 	return server
 }
 
 // ServeHTTP runs http server
-func (s *Server) ServeHTTP() {
+func (s *server) ServeHTTP() {
 	s.logProcess()
 	log.Println(s.server.ListenAndServe())
 }
 
 // ServeHTTPS runs https server using provided TLS certificate and key
-func (s *Server) ServeHTTPS() {
+func (s *server) ServeHTTPS() {
 	s.logProcess()
 	log.Println(s.server.ListenAndServeTLS(s.config.TLSCert, s.config.TLSKey))
 }
 
-func (s *Server) logProcess()  {
+func (s *server) logProcess()  {
 	log.Printf("%s server is listening requests on %s:%d\n",
 		s.config.Protocol, s.config.Address, s.config.Port)
 

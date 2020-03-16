@@ -10,23 +10,30 @@ import (
 type ApiRouteHandlers struct {
 	dataProvider *devicecontrol.DeviceControl
 	middleWare *s.Middleware
+	router *mux.Router
 }
 
-func NewApiRouteHandlers(config *s.ServerConfig, deviceControl *devicecontrol.DeviceControl) ApiRouteHandlers  {
-	middleware := s.NewMiddleware(config)
-	return ApiRouteHandlers{dataProvider: deviceControl, middleWare:middleware}
+func NewApiRouteHandlers(config *s.ServerConfig, deviceControl *devicecontrol.DeviceControl) *ApiRouteHandlers  {
+	return &ApiRouteHandlers{
+		dataProvider: deviceControl,
+		middleWare:s.NewMiddleware(config),
+		router:mux.NewRouter()}
 }
 
-func (apiHandlers *ApiRouteHandlers) Init(r *mux.Router)  {
-	r.NotFoundHandler = http.HandlerFunc(apiHandlers.HandleNotFound)
-	r.Use(apiHandlers.middleWare.HeadersMiddleware)
-	r.Use(apiHandlers.middleWare.AuthTokenMiddleware)
+func (apiHandlers *ApiRouteHandlers) Router() *mux.Router  {
+	return apiHandlers.router
+}
+
+func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
+	apiHandlers.router.NotFoundHandler = http.HandlerFunc(apiHandlers.HandleNotFound)
+	apiHandlers.router.Use(apiHandlers.middleWare.HeadersMiddleware)
+	apiHandlers.router.Use(apiHandlers.middleWare.AuthTokenMiddleware)
 
 	// Run routes
-	r.HandleFunc("/run/command/{commandId}", apiHandlers.handleRunCommand)
-	r.HandleFunc("/run/scenario/{scenarioId}", apiHandlers.handleRunScenario)
-	r.HandleFunc("/run/intent", apiHandlers.handleRunIntent).Methods("POST")
+	apiHandlers.router.HandleFunc("/run/command/{commandId}", apiHandlers.handleRunCommand)
+	apiHandlers.router.HandleFunc("/run/scenario/{scenarioId}", apiHandlers.handleRunScenario)
+	apiHandlers.router.HandleFunc("/run/intent", apiHandlers.handleRunIntent).Methods("POST")
 
 	// Api routes
-	r.HandleFunc("/controls", apiHandlers.handleControls)
+	apiHandlers.router.HandleFunc("/controls", apiHandlers.handleControls)
 }

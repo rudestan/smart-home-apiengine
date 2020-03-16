@@ -10,7 +10,6 @@ import (
 	"smh-apiengine/pkg/directpublisher"
 	"smh-apiengine/pkg/webserver"
 
-	"github.com/gorilla/mux"
 	"github.com/urfave/cli/v2"
 )
 
@@ -169,7 +168,7 @@ func runServer(serverConfig *webserver.ServerConfig, rmqConfig *amqp.Config) err
 	}
 
 	directPublisher := directpublisher.NewDirectPublisher(rmqConfig, serverConfig)
-	server := webserver.NewServer(serverConfig, mux.NewRouter(), directPublisher)
+	server := webserver.NewServer(serverConfig, directPublisher)
 	switch serverConfig.Protocol {
 	case "http":
 		server.ServeHTTP()

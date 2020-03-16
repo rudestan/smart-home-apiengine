@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"os"
 	"path"
@@ -132,7 +131,7 @@ func runServer(serverConfig *webserver.ServerConfig, deviceControl *devicecontro
 	}
 
 	apiRouteHandlers := webapi.NewApiRouteHandlers(serverConfig, deviceControl)
-	server := webserver.NewServer(serverConfig, mux.NewRouter(), &apiRouteHandlers)
+	server := webserver.NewServer(serverConfig, apiRouteHandlers)
 
 	switch serverConfig.Protocol {
 	case "http":
