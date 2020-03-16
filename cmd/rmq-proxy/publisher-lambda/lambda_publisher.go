@@ -1,33 +1,36 @@
 package main
 
 import (
+	"log"
+	"smh-apiengine/pkg/alexakit"
+	"smh-apiengine/pkg/amqp"
+
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-type MyEvent struct {
-	Name string `json:"What is your name?"`
-	Age int     `json:"How old are you?"`
-}
-
-type Response struct {
-	Message string `json:"message"`
-}
-
-func HandleLambdaEvent(event MyEvent) (Response, error) {
-/*	payload, err := json.Marshal(event)
+func HandleLambdaEvent(alexaRequest alexakit.AlexaRequest) (alexakit.AlexaResponse, error) {
+	payload, err := alexaRequest.ToJson()
 
 	if err != nil {
-		return Response{Message: "Failed to encode JSON"}, err
+		log.Println("Failed to encode JSON")
+
+		return alexakit.NewPlainTextSpeechResponse(alexakit.SpeechTextFailed), err
 	}
 
-	err = rmqproc.Publish(string(payload))
+	rmqConfig := alexakit.NewConfigFromEnv()
+	rmq := amqp.NewRmq(rmqConfig)
+
+	err = rmq.Publish(payload)
 
 	if err != nil {
-		return Response{Message: "Failed to Publish payload!"}, err
-	}*/
+		return alexakit.NewPlainTextSpeechResponse(alexakit.SpeechTextFailed), err
+	}
 
-	return Response{Message: "Payload published, check RMQ"}, nil
+	speechResponse := alexakit.NewPlainTextSpeechResponse(alexakit.SpeechTextConfirmation)
+
+	return speechResponse, nil
 }
+
 
 func main() {
 	lambda.Start(HandleLambdaEvent)

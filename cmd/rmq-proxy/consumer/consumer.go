@@ -4,18 +4,10 @@ import (
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
+	"smh-apiengine/pkg/alexakit"
 	"smh-apiengine/pkg/amqp"
 )
 
-const (
-	rmqHost       = "localhost"
-	rmqPort       = 5672
-	rmqLogin      = "guest"
-	rmqPassword   = "guest"
-	rmqExchange   = "alexa_sync"
-	rmqQueue      = "alexa.responses"
-	rmqRoutingKey = "alexa.response.json"
-)
 const apiEndpoint = "http://localhost:8787/run/intent"
 
 func main() {
@@ -33,49 +25,49 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "host",
-				Value:       rmqHost,
+				Value:       alexakit.RmqHost,
 				Usage:       "RabbitMQ Host",
 				Destination: &rmqConfig.Host,
 				Aliases:     []string{"t"},
 			},
 			&cli.IntFlag{
 				Name:        "port",
-				Value:       rmqPort,
+				Value:       alexakit.RmqPort,
 				Usage:       "RabbitMQ Host",
 				Destination: &rmqConfig.Port,
 				Aliases:     []string{"p"},
 			},
 			&cli.StringFlag{
 				Name:        "login",
-				Value:       rmqLogin,
+				Value:       alexakit.RmqLogin,
 				Usage:       "RabbitMQ Login",
 				Destination: &rmqConfig.Login,
 				Aliases:     []string{"l"},
 			},
 			&cli.StringFlag{
 				Name:        "password",
-				Value:       rmqPassword,
+				Value:       alexakit.RmqPassword,
 				Usage:       "RabbitMQ Password",
 				Destination: &rmqConfig.Password,
 				Aliases:     []string{"s"},
 			},
 			&cli.StringFlag{
 				Name:        "exchange",
-				Value:       rmqExchange,
+				Value:       alexakit.RmqExchange,
 				Usage:       "RabbitMQ Exchange name",
 				Destination: &rmqConfig.Exchange,
 				Aliases:     []string{"e"},
 			},
 			&cli.StringFlag{
 				Name:        "queue",
-				Value:       rmqQueue,
+				Value:       alexakit.RmqQueue,
 				Usage:       "RabbitMQ Queue name",
 				Destination: &rmqConfig.Queue,
 				Aliases:     []string{"q"},
 			},
 			&cli.StringFlag{
 				Name:        "rkey",
-				Value:       rmqRoutingKey,
+				Value:       alexakit.RmqRoutingKey,
 				Usage:       "RabbitMQ Queue name",
 				Destination: &rmqConfig.RoutingKey,
 				Aliases:     []string{"r"},

@@ -8,8 +8,6 @@ import (
 	"smh-apiengine/pkg/alexakit"
 )
 
-const confirmationText = "Ok."
-
 func (dp *DirectPublisher) handleAlexaRequest(w http.ResponseWriter, r *http.Request)  {
 	w.WriteHeader(http.StatusOK)
 
@@ -32,7 +30,7 @@ func (dp *DirectPublisher) handleAlexaRequest(w http.ResponseWriter, r *http.Req
 }
 
 func (dp *DirectPublisher) AlexaTextResponse(w http.ResponseWriter) {
-	alexaResponse := alexakit.NewPlainTextSpeechResponse(confirmationText)
+	alexaResponse := alexakit.NewPlainTextSpeechResponse(alexakit.SpeechTextConfirmation)
 	responseJson, err := alexaResponse.ToJson()
 
 	if err != nil {

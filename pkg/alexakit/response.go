@@ -7,6 +7,11 @@ const (
 	OutputSpeechTypePlainText = "PlainText"
 )
 
+const (
+	SpeechTextConfirmation = "Ok."
+	SpeechTextFailed = "Operation failed."
+)
+
 type OutputSpeech struct {
 	Type string `json:"type"`
 	Text string `json:"text"`

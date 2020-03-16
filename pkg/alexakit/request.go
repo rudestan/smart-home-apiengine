@@ -64,3 +64,13 @@ func NewAlexaRequestIntent(r *http.Request) (AlexaRequest, error) {
 
 	return alexaRequestIntent, nil
 }
+
+func (r *AlexaRequest) ToJson() (string, error) {
+	content, err := json.Marshal(r)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(content), nil
+}

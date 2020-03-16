@@ -8,7 +8,7 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestNewAlexaRequestIntent_Created(t *testing.T) {
+func Test_NewAlexaRequestIntent_Created(t *testing.T) {
     requestPayload := `
 {
   "version": "1.0",

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"smh-apiengine/pkg/alexakit"
 	"smh-apiengine/pkg/amqp"
 	"smh-apiengine/pkg/directpublisher"
 	"smh-apiengine/pkg/webserver"
@@ -17,16 +18,6 @@ const (
 	defaultProtocol = "http"
 	defaultAddress  = "127.0.0.1"
 	defaultPort     = 8844
-)
-
-const (
-	rmqHost       = "localhost"
-	rmqPort       = 5672
-	rmqLogin      = "guest"
-	rmqPassword   = "guest"
-	rmqExchange   = "alexa_sync"
-	rmqQueue      = "alexa.responses"
-	rmqRoutingKey = "alexa.response.json"
 )
 
 func main() {
@@ -94,52 +85,59 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:        "rmqhost",
-				Value:       rmqHost,
+				Value:       alexakit.RmqHost,
 				Usage:       "RabbitMQ Host",
 				Destination: &rmqConfig.Host,
 				Aliases:     []string{"t"},
+				EnvVars:     []string{alexakit.EnvRmqHost},
 			},
 			&cli.IntFlag{
 				Name:        "rmqport",
-				Value:       rmqPort,
+				Value:       alexakit.RmqPort,
 				Usage:       "RabbitMQ Port",
 				Destination: &rmqConfig.Port,
 				Aliases:     []string{"o"},
+				EnvVars:     []string{alexakit.EnvRmqPort},
 			},
 			&cli.StringFlag{
 				Name:        "rmqlogin",
-				Value:       rmqLogin,
+				Value:       alexakit.RmqLogin,
 				Usage:       "RabbitMQ Login",
 				Destination: &rmqConfig.Login,
 				Aliases:     []string{"i"},
+				EnvVars:	 []string{alexakit.EnvRmqLogin},
 			},
 			&cli.StringFlag{
 				Name:        "rmqpassword",
-				Value:       rmqPassword,
+				Value:       alexakit.RmqPassword,
 				Usage:       "RabbitMQ Password",
 				Destination: &rmqConfig.Password,
 				Aliases:     []string{"s"},
+				EnvVars:	 []string{alexakit.EnvRmqPassword},
 			},
 			&cli.StringFlag{
 				Name:        "rmqexchange",
-				Value:       rmqExchange,
+				Value:       alexakit.RmqExchange,
 				Usage:       "RabbitMQ Exchange name",
 				Destination: &rmqConfig.Exchange,
 				Aliases:     []string{"e"},
+				EnvVars:	 []string{alexakit.EnvRmqExchange},
 			},
 			&cli.StringFlag{
 				Name:        "rmqqueue",
-				Value:       rmqQueue,
+				Value:       alexakit.RmqQueue,
 				Usage:       "RabbitMQ Queue name",
 				Destination: &rmqConfig.Queue,
 				Aliases:     []string{"q"},
+				EnvVars:	 []string{alexakit.EnvRmqQueue},
 			},
 			&cli.StringFlag{
 				Name:        "rmqrkey",
-				Value:       rmqRoutingKey,
-				Usage:       "RabbitMQ Queue name",
+				Value:       alexakit.RmqRoutingKey,
+				Usage:       "RabbitMQ Routing key",
 				Destination: &rmqConfig.RoutingKey,
 				Aliases:     []string{"n"},
+				EnvVars:	 []string{alexakit.EnvRmqRoutingKey},
 			},
 		},
 		Action: func(c *cli.Context) error {
