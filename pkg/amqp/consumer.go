@@ -47,11 +47,9 @@ func (proc* Rmq) Consume(handler interface{}) {
 
 	go func() {
 		for d := range msgs {
-			log.Println("Message received")
-
 			handlerValue := reflect.ValueOf(handler)
 
-			switch handlerValue.Elem().Interface().(type) {
+			switch handlerValue.Interface().(type) {
 			case MessageHandler:
 				handler.(MessageHandler).handle(cast.ToString(d.Body))
 			default:

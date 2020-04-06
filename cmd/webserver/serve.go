@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"smh-apiengine/pkg/devicecontrol"
-	"smh-apiengine/pkg/webapi"
 	"smh-apiengine/pkg/webserver"
 
 	"github.com/urfave/cli/v2"
@@ -130,7 +129,7 @@ func runServer(serverConfig *webserver.ServerConfig, deviceControl *devicecontro
 		}
 	}
 
-	apiRouteHandlers := webapi.NewApiRouteHandlers(serverConfig, deviceControl)
+	apiRouteHandlers := webserver.NewApiRouteHandlers(serverConfig, deviceControl)
 	server := webserver.NewServer(serverConfig, apiRouteHandlers)
 
 	switch serverConfig.Protocol {

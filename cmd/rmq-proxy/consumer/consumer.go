@@ -12,8 +12,8 @@ const apiEndpoint = "http://localhost:8787/run/intent"
 
 func main() {
 	var rmqConfig amqp.Config
-	var msgHandler amqp.Handler
 	var logFile string
+	msgHandler := new(amqp.Handler)
 
 	app := &cli.App{
 		Name: "Smart home RMQ Proxy",
@@ -26,6 +26,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "host",
 				Value:       alexakit.RmqHost,
+				EnvVars: 	 []string{alexakit.EnvRmqHost},
 				Usage:       "RabbitMQ Host",
 				Destination: &rmqConfig.Host,
 				Aliases:     []string{"t"},
@@ -33,6 +34,7 @@ func main() {
 			&cli.IntFlag{
 				Name:        "port",
 				Value:       alexakit.RmqPort,
+				EnvVars: 	 []string{alexakit.EnvRmqPort},
 				Usage:       "RabbitMQ Host",
 				Destination: &rmqConfig.Port,
 				Aliases:     []string{"p"},
@@ -40,6 +42,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "login",
 				Value:       alexakit.RmqLogin,
+				EnvVars: 	 []string{alexakit.EnvRmqLogin},
 				Usage:       "RabbitMQ Login",
 				Destination: &rmqConfig.Login,
 				Aliases:     []string{"l"},
@@ -47,6 +50,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "password",
 				Value:       alexakit.RmqPassword,
+				EnvVars: 	 []string{alexakit.EnvRmqPassword},
 				Usage:       "RabbitMQ Password",
 				Destination: &rmqConfig.Password,
 				Aliases:     []string{"s"},
@@ -54,6 +58,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "exchange",
 				Value:       alexakit.RmqExchange,
+				EnvVars: 	 []string{alexakit.EnvRmqExchange},
 				Usage:       "RabbitMQ Exchange name",
 				Destination: &rmqConfig.Exchange,
 				Aliases:     []string{"e"},
@@ -61,6 +66,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "queue",
 				Value:       alexakit.RmqQueue,
+				EnvVars: 	 []string{alexakit.EnvRmqQueue},
 				Usage:       "RabbitMQ Queue name",
 				Destination: &rmqConfig.Queue,
 				Aliases:     []string{"q"},
@@ -68,6 +74,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "rkey",
 				Value:       alexakit.RmqRoutingKey,
+				EnvVars: 	 []string{alexakit.EnvRmqRoutingKey},
 				Usage:       "RabbitMQ Queue name",
 				Destination: &rmqConfig.RoutingKey,
 				Aliases:     []string{"r"},

@@ -2,11 +2,24 @@ package directpublisher
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
+	"smh-apiengine/pkg/webserver"
 )
+
+func (dp *DirectPublisher) Router() *mux.Router  {
+	return dp.router
+}
+
+// Init implements routes webservers
+func (dp *DirectPublisher) InitRoutes()  {
+	headersMiddleware := webserver.HeadersMiddleware{}
+	dp.router.Use(headersMiddleware.Middleware)
+	dp.router.HandleFunc("/alexaproxy", dp.handleAlexaRequest).Methods("POST")
+}
 
 func (dp *DirectPublisher) handleAlexaRequest(w http.ResponseWriter, r *http.Request)  {
 	w.WriteHeader(http.StatusOK)

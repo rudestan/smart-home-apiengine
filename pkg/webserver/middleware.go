@@ -22,6 +22,9 @@ type AuthMiddleware struct {
 	Token string
 }
 
+type HeadersMiddleware struct {
+}
+
 func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if am.Token == "" || am.isTokenValid(am.Token, r.Header.Get(headerAuthorization)) {
@@ -46,4 +49,14 @@ func (am *AuthMiddleware) isTokenValid(token string, authHeader string) bool {
 	}
 
 	return false
+}
+
+func (hm *HeadersMiddleware) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: \"%s\", from: %s", r.RequestURI, r.RemoteAddr)
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		next.ServeHTTP(w, r)
+	})
 }
