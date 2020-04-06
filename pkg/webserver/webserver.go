@@ -18,7 +18,7 @@ type ServerConfig struct {
 	TLSKey   string
 }
 
-type Routing interface {
+type RouteHandlers interface {
 	Router() *mux.Router
 	InitRoutes()
 }
@@ -29,7 +29,7 @@ type server struct {
 }
 
 func NewServer(serverConfig *ServerConfig, routing interface{}) *server {
-	rHandlers := routing.(Routing)
+	rHandlers := routing.(RouteHandlers)
 
 	rHandlers.InitRoutes()
 

@@ -12,7 +12,7 @@ const (
 	bearerPrefix        = "Bearer "
 )
 
-// APIResultResponse api response for messages without payload
+// ResultResponse api response for messages without payload
 type ResultResponse struct {
 	Result  string `json:"result"`
 	Message string `json:"message"`
@@ -22,7 +22,7 @@ type AuthMiddleware struct {
 	Token string
 }
 
-func (am *AuthMiddleware) AuthTokenMiddleware(next http.Handler) http.Handler {
+func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if am.Token == "" || am.isTokenValid(am.Token, r.Header.Get(headerAuthorization)) {
 			next.ServeHTTP(w, r)

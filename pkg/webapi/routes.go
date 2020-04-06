@@ -9,16 +9,14 @@ import (
 
 type ApiRouteHandlers struct {
 	dataProvider *devicecontrol.DeviceControl
-	middleware []func(http.Handler) http.Handler
+	middleware []mux.MiddlewareFunc
 	router *mux.Router
 }
 
 func NewApiRouteHandlers(config *s.ServerConfig, deviceControl *devicecontrol.DeviceControl) *ApiRouteHandlers  {
-	authMiddleware := s.AuthMiddleware{Token:config.Token}
-
-	middleware := []func(http.Handler) http.Handler{
-		s.HeadersMiddleware,
-		authMiddleware.AuthTokenMiddleware}
+	middleware := []mux.MiddlewareFunc{
+		s.AuthMiddleware{Token:config.Token}.Middleware,
+		s.HeadersMiddleware{}.Middleware}
 
 	return &ApiRouteHandlers{
 		dataProvider: deviceControl,

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"smh-apiengine/pkg/alexakit"
 	"smh-apiengine/pkg/amqp"
 
@@ -12,8 +11,6 @@ func HandleLambdaEvent(alexaRequest alexakit.AlexaRequest) (alexakit.AlexaRespon
 	payload, err := alexaRequest.ToJson()
 
 	if err != nil {
-		log.Println("Failed to encode JSON")
-
 		return alexakit.NewPlainTextSpeechResponse(alexakit.SpeechTextFailed), err
 	}
 
