@@ -10,6 +10,7 @@ type DeviceControl struct {
 	config *Config
 	broadlink broadlinkrm.Broadlink
 	lock *spinLock
+	DeviceLogs []string
 }
 
 func NewDeviceControl(configFile string) (DeviceControl, error)  {

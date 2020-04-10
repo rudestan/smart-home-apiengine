@@ -56,7 +56,7 @@ func (deviceControl *DeviceControl) ExecCommandFullCycle(command Command) error 
 // ExecCommandWithRetryAndDiscover executes the command on passed device, in case of failure calls the execution
 // with device discovering
 func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Device, command Command) error {
-	err := deviceControl.execCommand(device.Mac, command.Code)
+	err := deviceControl.execCommand(device, command.Code)
 
 	if err == nil {
 		return nil
@@ -72,7 +72,7 @@ func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Devi
 
 	log.Printf("Retrying execution on device: %s (%s, %s)\n", device.Name, device.IP, device.Mac)
 
-	return deviceControl.execCommand(device.Mac, command.Code)
+	return deviceControl.execCommand(device, command.Code)
 }
 
 // discover function discovers the devices, this operation is time consuming and should be executed only once (for
@@ -98,7 +98,7 @@ func (deviceControl *DeviceControl) discover() error {
 
 // execCommand executes command on the device, should not be during lock. The operation can be time consuming in
 // case the device is not available on the network. It will fail on timeout.
-func (deviceControl *DeviceControl) execCommand(mac string, code string) error  {
+func (deviceControl *DeviceControl) execCommand(device *Device, code string) error  {
 	if deviceControl.lock.Locked() {
 		log.Println("device control is locked, can not execute command")
 		return nil
@@ -107,11 +107,37 @@ func (deviceControl *DeviceControl) execCommand(mac string, code string) error  
 	deviceControl.lock.Lock()
 	defer deviceControl.lock.Unlock()
 
-	err := deviceControl.broadlink.Execute(mac, code)
+	err := deviceControl.broadlink.Execute(device.Mac, code)
 
 	if err != nil {
 		return err
 	}
+
+	err = deviceControl.getPowerState(device)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return nil
+}
+
+func (deviceControl *DeviceControl) getPowerState(device *Device) error  {
+	powerState, err := deviceControl.broadlink.GetPowerState(device.Mac)
+
+	if err != nil {
+		return err
+	}
+
+	var status string
+
+	if powerState {
+		status = "on"
+	} else {
+		status = "off"
+	}
+
+	deviceControl.DeviceLogs = append(deviceControl.DeviceLogs, "State changed: " + device.Name + " power state: " + status)
 
 	return nil
 }

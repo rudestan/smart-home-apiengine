@@ -18,7 +18,6 @@ func HandleLambdaEvent(alexaRequest alexakit.AlexaRequest) (alexakit.AlexaRespon
 	rmq := amqp.NewRmq(rmqConfig)
 
 	err = rmq.Publish(payload)
-
 	if err != nil {
 		return alexakit.NewPlainTextSpeechResponse(alexakit.SpeechTextFailed), err
 	}
@@ -27,7 +26,6 @@ func HandleLambdaEvent(alexaRequest alexakit.AlexaRequest) (alexakit.AlexaRespon
 
 	return speechResponse, nil
 }
-
 
 func main() {
 	lambda.Start(HandleLambdaEvent)

@@ -2,12 +2,14 @@ package webserver
 
 import (
 	"fmt"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
+	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
 	"smh-apiengine/pkg/devicecontrol"
-	"github.com/gorilla/mux"
 )
 
 type ApiRouteHandlers struct {
@@ -34,7 +36,7 @@ func (apiHandlers *ApiRouteHandlers) Router() *mux.Router {
 }
 
 func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
-	apiHandlers.router.NotFoundHandler = http.HandlerFunc(apiHandlers.HandleNotFound)
+	apiHandlers.router.NotFoundHandler = http.HandlerFunc(apiHandlers.handleNotFound)
 
 	for _, middlewareFunc := range apiHandlers.middleware {
 		apiHandlers.router.Use(middlewareFunc)
@@ -47,10 +49,11 @@ func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
 
 	// Api routes
 	apiHandlers.router.HandleFunc("/controls", apiHandlers.handleControls)
+	apiHandlers.router.HandleFunc("/device/state", apiHandlers.handleWebsocketDeviceState)
 }
 
 // handleNotFound used for not found responses
-func (apiHandlers *ApiRouteHandlers) HandleNotFound(w http.ResponseWriter, r *http.Request) {
+func (apiHandlers *ApiRouteHandlers) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	_, ioErr := io.WriteString(w, NewErrorResponse("Resource not found"))
 
 	if ioErr != nil {
@@ -186,4 +189,39 @@ func (apiHandlers *ApiRouteHandlers) handleRunScenario(w http.ResponseWriter, r 
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func (apiHandlers *ApiRouteHandlers) handleWebsocketDeviceState(w http.ResponseWriter, r *http.Request)  {
+	conn, _, _, err := ws.UpgradeHTTP(r, w)
+
+	if err != nil {
+		log.Println(err)
+
+		return
+	}
+
+	go func() {
+		defer func() {
+			err = conn.Close()
+			if err != nil {
+				log.Println("Failed to close the connection")
+			}
+		}()
+
+		for {
+			if len(apiHandlers.dataProvider.DeviceLogs) == 0 {
+				continue
+			}
+
+			for _, deviceLog := range apiHandlers.dataProvider.DeviceLogs {
+				err = wsutil.WriteServerText(conn, []byte(deviceLog))
+
+				if err != nil {
+					log.Println(err)
+				}
+			}
+
+			apiHandlers.dataProvider.DeviceLogs = []string{}
+		}
+	}()
 }
