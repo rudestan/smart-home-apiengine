@@ -1,21 +1,25 @@
 package webserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/gorilla/mux"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"smh-apiengine/pkg/alexakit"
 	"smh-apiengine/pkg/devicecontrol"
+	"time"
 )
 
 type ApiRouteHandlers struct {
 	dataProvider *devicecontrol.DeviceControl
 	middleware []mux.MiddlewareFunc
 	router *mux.Router
+	routesInited time.Time
 }
 
 func NewApiRouteHandlers(config *ServerConfig, deviceControl *devicecontrol.DeviceControl) *ApiRouteHandlers  {
@@ -28,7 +32,8 @@ func NewApiRouteHandlers(config *ServerConfig, deviceControl *devicecontrol.Devi
 	return &ApiRouteHandlers{
 		dataProvider: deviceControl,
 		middleware:middleware,
-		router:mux.NewRouter()}
+		router:mux.NewRouter(),
+		routesInited: time.Now()}
 }
 
 func (apiHandlers *ApiRouteHandlers) Router() *mux.Router {
@@ -41,6 +46,8 @@ func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
 	for _, middlewareFunc := range apiHandlers.middleware {
 		apiHandlers.router.Use(middlewareFunc)
 	}
+
+	apiHandlers.router.HandleFunc("/uptime", apiHandlers.handleUptime)
 
 	// Run routes
 	apiHandlers.router.HandleFunc("/run/command/{commandId}", apiHandlers.handleRunCommand)
@@ -56,6 +63,41 @@ func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
 func (apiHandlers *ApiRouteHandlers) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	_, ioErr := io.WriteString(w, NewErrorResponse("Resource not found"))
 
+	if ioErr != nil {
+		log.Println(ioErr)
+	}
+}
+
+// handlePing simple handler that returns a so called "pong" response
+func (apiHandlers *ApiRouteHandlers) handleUptime(w http.ResponseWriter, r *http.Request) {
+	type uptime struct {
+		Since time.Duration `json:"uptime"`
+		StartedOn string `json:"started_on"`
+	}
+
+	days := 0
+	uptimeData := uptime{
+		Since: time.Since(apiHandlers.routesInited),
+		StartedOn: fmt.Sprintf(
+			"%d.%d.%d at %d:%d",
+			apiHandlers.routesInited.Day(),
+			apiHandlers.routesInited.Month(),
+			apiHandlers.routesInited.Year(),
+			apiHandlers.routesInited.Hour(),
+			apiHandlers.routesInited.Minute())}
+
+	if uptimeData.Since.Hours() >= 24 {
+		days = int(math.Round(uptimeData.Since.Hours() / 24))
+	}
+
+	_, ioErr := io.WriteString(w, NewSuccessResponse(
+		fmt.Sprintf(
+			"Uptime %d day(s), %.f hour(s), %.f minute(s), %.f second(s)",
+			days,
+			uptimeData.Since.Hours(),
+			uptimeData.Since.Minutes(),
+			uptimeData.Since.Seconds()),
+			uptimeData))
 	if ioErr != nil {
 		log.Println(ioErr)
 	}
@@ -125,9 +167,9 @@ func (apiHandlers *ApiRouteHandlers) handleRunCommand(w http.ResponseWriter, r *
 
 	vars := mux.Vars(r)
 	commandID := vars["commandId"]
-	cmd, err := apiHandlers.dataProvider.FindCommandByID(commandID)
+	cmd := apiHandlers.dataProvider.FindCommandByID(commandID)
 
-	if err != nil {
+	if cmd == nil {
 		_, ioErr := io.WriteString(w, NewErrorResponse(
 			fmt.Sprintf("Command with id %s was not found", commandID)))
 
@@ -135,20 +177,18 @@ func (apiHandlers *ApiRouteHandlers) handleRunCommand(w http.ResponseWriter, r *
 			log.Println(ioErr)
 		}
 
-		log.Println(err)
-
 		return
 	}
 
 	go func() {
-		err = apiHandlers.dataProvider.ExecCommandFullCycle(cmd)
+		err := apiHandlers.dataProvider.ExecCommandFullCycle(*cmd)
 
 		if err != nil {
 			log.Println(err)
 		}
 	}()
 
-	_, err = io.WriteString(w, NewSuccessResponse("command executed", nil))
+	_, err := io.WriteString(w, NewSuccessResponse("command executed", nil))
 
 	if err != nil {
 		log.Println(err)
@@ -209,19 +249,26 @@ func (apiHandlers *ApiRouteHandlers) handleWebsocketDeviceState(w http.ResponseW
 		}()
 
 		for {
-			if len(apiHandlers.dataProvider.DeviceLogs) == 0 {
+			if len(apiHandlers.dataProvider.DeviceStateBuffer) == 0 {
 				continue
 			}
 
-			for _, deviceLog := range apiHandlers.dataProvider.DeviceLogs {
-				err = wsutil.WriteServerText(conn, []byte(deviceLog))
+			for time, bufferItem := range apiHandlers.dataProvider.DeviceStateBuffer {
+				jsonStr, err := json.Marshal(bufferItem)
+
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+
+				err = wsutil.WriteServerText(conn, jsonStr)
 
 				if err != nil {
 					log.Println(err)
 				}
-			}
 
-			apiHandlers.dataProvider.DeviceLogs = []string{}
+				delete(apiHandlers.dataProvider.DeviceStateBuffer, time)
+			}
 		}
 	}()
 }

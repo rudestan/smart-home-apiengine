@@ -11,6 +11,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	ErrArguments = errors.New("not all required arguments provided")
+	ErrInvalidRunType = errors.New("invalid run type specified. Must be either \"scenario\" or \"cmd\"")
+)
+
 func main() {
 	var configFile string
 	var logFile string
@@ -46,30 +51,32 @@ func main() {
 		},
 		Action: func(c *cli.Context) error {
 			if c.NArg() != 2 {
-				return errors.New("not all required arguments provided")
+				return ErrArguments
 			}
 
 			runType := c.Args().First()
 
 			if runType != "cmd" && runType != "scenario" {
-				return errors.New("invalid run type specified. Must be either \"scenario\" or \"cmd\"")
+				return ErrInvalidRunType
 			}
 
-			deviceControl, err := devicecontrol.NewDeviceControl(configFile)
+			config, err := devicecontrol.NewConfiguration(configFile)
+
 			if err != nil {
 				return err
 			}
 
+			deviceControl := devicecontrol.NewDeviceControl(&config)
 			id := c.Args().Get(1)
 
 			switch runType {
 			case "cmd":
-				cmd, err := deviceControl.FindCommandByID(id)
-				if err != nil {
-					return err
+				cmd := deviceControl.FindCommandByID(id)
+				if cmd == nil {
+					return errors.New("command not found")
 				}
 
-				return deviceControl.ExecCommandFullCycle(cmd)
+				return deviceControl.ExecCommandFullCycle(*cmd)
 			case "scenario":
 				scenario, err := deviceControl.FindScenarioByName(id)
 				if err != nil {

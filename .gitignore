@@ -2,4 +2,5 @@
 *.DS_Store
 *.log
 build/*
-config/config.json
+config/*
+!config/config_devices.json

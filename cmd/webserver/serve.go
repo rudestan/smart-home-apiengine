@@ -3,19 +3,21 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"path"
 	"smh-apiengine/pkg/devicecontrol"
 	"smh-apiengine/pkg/webserver"
-
-	"github.com/urfave/cli/v2"
+	"time"
 )
 
 const (
 	defaultProtocol = "http"
 	defaultAddress  = "127.0.0.1"
 	defaultPort     = 8787
+	defaultStartRetires = 5
+	defaultStartRetryInterval = 3 // seconds
 )
 
 func main() {
@@ -107,10 +109,13 @@ func main() {
 				}
 			}
 
-			deviceControl, err := devicecontrol.NewDeviceControl(configFile)
+			config, err := devicecontrol.NewConfiguration(configFile)
+
 			if err != nil {
 				return err
 			}
+
+			deviceControl := devicecontrol.NewDeviceControl(&config)
 
 			return runServer(&srvConfig, &deviceControl)
 		},
@@ -132,11 +137,19 @@ func runServer(serverConfig *webserver.ServerConfig, deviceControl *devicecontro
 	apiRouteHandlers := webserver.NewApiRouteHandlers(serverConfig, deviceControl)
 	server := webserver.NewServer(serverConfig, apiRouteHandlers)
 
-	switch serverConfig.Protocol {
-	case "http":
-		server.ServeHTTP()
-	case "https":
-		server.ServeHTTPS()
+	var err error
+
+	for i := 0; i < defaultStartRetires; i++ {
+		if serverConfig.Protocol == "https" {
+			err = server.ServeHTTPS()
+		} else {
+			err = server.ServeHTTP()
+		}
+
+		if err != nil {
+			log.Printf("Failed: %s; attempt %d of %d ...\n", err.Error(), i + 1, defaultStartRetires)
+			time.Sleep(time.Second * defaultStartRetryInterval)
+		}
 	}
 
 	return nil

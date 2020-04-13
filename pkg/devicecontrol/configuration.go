@@ -4,10 +4,35 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"log"
 	"os"
 	"sync"
+)
+
+const (
+	DevicePowerSwitch = "power_switch"
+	DeviceBlaster = "blaster"
+)
+
+const (
+	PowerSwitchOnCmdName = "on"
+	PowerSwitchOffCmdName = "off"
+	PowerSwitchOnCmd = "01"
+	PowerSwitchOffCmd = "00"
+)
+
+const (
+	NsUUIDCommand = "smart-home:command:"
+	NsUUIDScenario = "smart-home:scenario:"
+	NsUUIDElement = "smart-home:element:"
+	NsUUIDControl = "smart-home:control:"
+)
+
+const (
+	ElementTypeCommand = "command"
+	ElementTypeScenario = "scenario"
 )
 
 // Device struct that stores all required for usage data
@@ -18,6 +43,7 @@ type Device struct {
 	Key        string `json:"key"`
 	ID         string `json:"id"`
 	DeviceType string `json:"device_type"`
+	DeviceCategory string `json:"device_category"`
 	Enabled    bool   `json:"enabled"`
 }
 
@@ -41,6 +67,7 @@ type SlotValue struct {
 
 // Command struct contains all the data required for the execution as well as related intents that can trigger it
 type Command struct {
+	ID 		 string 		 `json:"id"`
 	DeviceID string          `json:"device_id"`
 	Name     string          `json:"name"`
 	Code     string          `json:"code"`
@@ -61,39 +88,42 @@ type CommandSlot struct {
 
 // SequenceItem struct contains the command name as a reference to a command and delay to the next execution in seconds
 type SequenceItem struct {
-	Name  string `json:"name"`
+	CommandId string `json:"command_id"`
 	Delay int    `json:"delay"`
 }
 
 // Scenario struct contains data that allows to execute multiple commands sequence using some triggering intents
+// scenario can be used as one control item that triggers N command sequence with certain delay
 type Scenario struct {
+	ID 		 string 		 `json:"id"`
 	Name     string          `json:"name"`
 	Sequence []SequenceItem  `json:"sequence"`
 	Intents  []CommandIntent `json:"intents"`
 }
 
-// Group struct holds a collection of ids of control items such as command and/or scenario. Groups can be used to
-// organize items for example "Light in the Living room" with commands to all light devices in the living room,
-// "TV" with commands related to TV etc.
-type Group struct {
-	Name      string              `json:"name"`
-	Commands  []map[string]string `json:"commands"`
-	Scenarios []string            `json:"scenarios"`
-}
-
-// Item a struct that represents control item
-type Item struct {
+// Control struct is used for creating a virtual remote control with items (buttons)
+type Control struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
-	Type string `json:"type"`
-	State string `json:"state"`
-} 
+	Icon string `json:"icon"` // icon for control e.g. in tabs
+	Items map[string]ControlItem `json:"items"`
+}
 
-// Control struct is used for organising commands and scenarios in control groups (e.g. remote control)
-type Control struct {
+// ControlItem struct represents some virtual control button
+type ControlItem struct {
+	ID string `json:"id"`
 	Name string `json:"name"`
-	Items map[string][]Item `json:"items"`
-} 
+	Icon string `json:"icon"`
+	Elements map[string]Element `json:"elements"`
+}
+
+// Element struct that represents an element from the configuration, either command or scenario
+type Element struct {
+	ID string `json:"id"`
+	Target string `json:"target"`
+	Type string `json:"type"`
+	StateOn bool `json:"state_on"`
+}
 
 // Config struct is the root struct that defines a device control struct
 type Config struct {
@@ -101,10 +131,91 @@ type Config struct {
 	Intents   map[string]Intent   `json:"intents"`
 	Commands  map[string]Command  `json:"commands"`
 	Scenarios map[string]Scenario `json:"scenarios"`
-	Groups    map[string]Group    `json:"groups"`
 	Controls  map[string]Control  `json:"controls"`
+	Schedule  map[string]ScheduleItem `json:"schedule"`
 	fileName  string
 	sync.Mutex
+}
+
+// ScheduleItem struct represents the schedule item that can be executed at certain times or some interval etc.
+type ScheduleItem struct {
+	ExecutionTimes map[string]string `json:"execution_times"`
+	Element Element `json:"element"`
+}
+
+func (c *Config) AddControl(ctrl Control)  {
+	if c.Controls == nil {
+		c.Controls = make(map[string]Control)
+	}
+
+	c.Controls[ctrl.ID] = ctrl
+}
+
+func (c *Config) NewControl(name string, icon string) Control  {
+	controlId := c.getUUIDV5(NsUUIDControl, name)
+
+	return Control{
+		ID:    controlId.String(),
+		Name:  name,
+		Icon:  icon,
+		Items: nil,
+	}
+}
+
+func (ctrl *Control) AddControlItem(ci ControlItem)  {
+	if ctrl.Items == nil {
+		ctrl.Items = make(map[string]ControlItem)
+	}
+
+	ctrl.Items[ci.ID] = ci
+}
+
+func (ci *ControlItem) AddControlItemElement(el Element)  {
+	if ci.Elements == nil {
+		ci.Elements = make(map[string]Element)
+	}
+
+	ci.Elements[el.ID] = el
+}
+
+func (c *Config) NewControlItem(name string, icon string) ControlItem  {
+	elementId := uuid.NewV4()
+
+	return ControlItem{
+		ID:       elementId.String(),
+		Name:     name,
+		Icon:     icon,
+		Elements: nil,
+	}
+}
+
+func (c *Config) NewControlItemCommandElement(target string, StateOn bool) Element  {
+	return c.newControlItemElement(target, ElementTypeCommand, StateOn)
+}
+
+func (c *Config) NewControlItemScenarioElement(target string, StateOn bool) Element  {
+	return c.newControlItemElement(target, ElementTypeScenario, StateOn)
+}
+
+func (c *Config) getUUIDV5(ns string, name string) uuid.UUID  {
+	nsUUID := uuid.NewV5(uuid.UUID{}, ns)
+
+	return uuid.NewV5(nsUUID, name)
+}
+
+func (c *Config) newControlItemElement(target string, elementType string, StateOn bool) Element  {
+	elementId := uuid.NewV4()
+
+	return Element{
+		ID:      elementId.String(),
+		Target:  target,
+		Type:    elementType,
+		StateOn: StateOn,
+	}
+}
+
+func (d *Device) SupportsPowerSwitch() bool  {
+	return d.DeviceCategory == DevicePowerSwitch
 }
 
 func (c *Config) findDeviceByMac(deviceMac string) (*Device, error) {
@@ -117,12 +228,28 @@ func (c *Config) findDeviceByMac(deviceMac string) (*Device, error) {
 	return nil, errors.New("no device found")
 }
 
-func (c *Config) findCommandByID(id string) (Command, error) {
-	if cmd, ok := c.Commands[id]; ok {
-		return cmd, nil
+func (c *Config) FindDeviceById(id string) *Device {
+	if device, ok := c.Devices[id]; ok {
+		return device
 	}
 
-	return Command{}, fmt.Errorf("command \"%s\" not found", id)
+	return nil
+}
+
+func (c *Config) FindCommandByID(id string) *Command {
+	if cmd, ok := c.Commands[id]; ok {
+		return &cmd
+	}
+
+	return nil
+}
+
+func (c *Config) FindScenarioByID(id string) *Scenario {
+	if scenario, ok := c.Scenarios[id]; ok {
+		return &scenario
+	}
+
+	return nil
 }
 
 func (c *Config) findScenarioByName(name string) (Scenario, error) {
@@ -131,6 +258,10 @@ func (c *Config) findScenarioByName(name string) (Scenario, error) {
 	}
 
 	return Scenario{}, fmt.Errorf("scenario \"%s\" not found", name)
+}
+
+func (s *Scenario) AddSequenceItem(item SequenceItem)  {
+	s.Sequence = append(s.Sequence, item)
 }
 
 // NewConfiguration loads the json configuration from provided file
@@ -169,7 +300,7 @@ func NewConfiguration(fileName string) (Config, error) {
 }
 
 // saveConfiguration saves the configuration to the provided filename
-func (c *Config) saveConfiguration(fileName string) error {
+func (c *Config) SaveConfiguration(fileName string) error {
 	c.Lock()
 	defer c.Unlock()
 

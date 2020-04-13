@@ -1,24 +1,36 @@
 package devicecontrol
 
 import (
-	"github.com/rudestan/broadlinkrm"
+	"errors"
+	"fmt"
 	"log"
+	"smh-apiengine/pkg/broadlinkrm"
 	"time"
 )
+
+const (
+	stateOff = "off"
+	stateOn = "on"
+)
+
+type DeviceState struct {
+	Id string `json:"id"`
+	State string `json:"state"`
+}
 
 // ExecScenarioFullCycle executes scenario full cycle with commands one after another, including the delay
 func (deviceControl *DeviceControl) ExecScenarioFullCycle(scenario Scenario) error {
 	log.Printf("Executing scenario \"%s\" with %d sequence items", scenario.Name, len(scenario.Sequence))
 
 	for _, sequenceItem := range scenario.Sequence {
-		log.Printf("Executing sequence item \"%s\"", sequenceItem.Name)
+		log.Printf("Executing sequence item \"%s\"", sequenceItem.CommandId)
 
-		cmd, err := deviceControl.config.findCommandByID(sequenceItem.Name)
-		if err != nil {
-			return err
+		cmd := deviceControl.config.FindCommandByID(sequenceItem.CommandId)
+		if cmd == nil {
+			return errors.New("command not found")
 		}
 
-		err = deviceControl.ExecCommandFullCycle(cmd)
+		err := deviceControl.ExecCommandFullCycle(*cmd)
 		if err != nil {
 			return err
 		}
@@ -56,7 +68,7 @@ func (deviceControl *DeviceControl) ExecCommandFullCycle(command Command) error 
 // ExecCommandWithRetryAndDiscover executes the command on passed device, in case of failure calls the execution
 // with device discovering
 func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Device, command Command) error {
-	err := deviceControl.execCommand(device, command.Code)
+	err := deviceControl.ExecCommand(&command)
 
 	if err == nil {
 		return nil
@@ -64,7 +76,7 @@ func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Devi
 
 	log.Printf("Failed trying with discovering: %s\n", err)
 
-	err = deviceControl.discover()
+	err = deviceControl.Discover(true)
 
 	if err != nil {
 		return err
@@ -72,12 +84,12 @@ func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Devi
 
 	log.Printf("Retrying execution on device: %s (%s, %s)\n", device.Name, device.IP, device.Mac)
 
-	return deviceControl.execCommand(device, command.Code)
+	return deviceControl.ExecCommand(&command)
 }
 
 // discover function discovers the devices, this operation is time consuming and should be executed only once (for
 // example from some goroutine).
-func (deviceControl *DeviceControl) discover() error {
+func (deviceControl *DeviceControl) Discover(debug bool) error {
 	if deviceControl.lock.Locked() {
 		log.Println("device control is locked, can not discover")
 		return nil
@@ -87,6 +99,11 @@ func (deviceControl *DeviceControl) discover() error {
 	defer deviceControl.lock.Unlock()
 
 	deviceControl.broadlink = broadlinkrm.NewBroadlink()
+
+	if !debug {
+		deviceControl.broadlink.DebugOff()
+	}
+
 	err := deviceControl.broadlink.Discover()
 
 	if err != nil {
@@ -96,9 +113,35 @@ func (deviceControl *DeviceControl) discover() error {
 	return nil
 }
 
+// ExecScenarioFullCycle executes scenario full cycle with commands one after another, including the delay
+func (deviceControl *DeviceControl) ExecScenario(scenario *Scenario) error {
+	log.Printf("Executing scenario \"%s\" with %d sequence items", scenario.Name, len(scenario.Sequence))
+
+	for _, sequenceItem := range scenario.Sequence {
+		log.Printf("Executing sequence item \"%s\"", sequenceItem.CommandId)
+
+		cmd := deviceControl.config.FindCommandByID(sequenceItem.CommandId)
+		if cmd == nil {
+			return errors.New("command not found")
+		}
+
+		err := deviceControl.ExecCommand(cmd)
+		if err != nil {
+			return err
+		}
+
+		if sequenceItem.Delay > 0 {
+			log.Printf("Sleeping %d seconds\n", sequenceItem.Delay)
+			time.Sleep(time.Second * time.Duration(sequenceItem.Delay))
+		}
+	}
+
+	return nil
+}
+
 // execCommand executes command on the device, should not be during lock. The operation can be time consuming in
 // case the device is not available on the network. It will fail on timeout.
-func (deviceControl *DeviceControl) execCommand(device *Device, code string) error  {
+func (deviceControl *DeviceControl) ExecCommand(command *Command) error  {
 	if deviceControl.lock.Locked() {
 		log.Println("device control is locked, can not execute command")
 		return nil
@@ -107,19 +150,13 @@ func (deviceControl *DeviceControl) execCommand(device *Device, code string) err
 	deviceControl.lock.Lock()
 	defer deviceControl.lock.Unlock()
 
-	err := deviceControl.broadlink.Execute(device.Mac, code)
+	device := deviceControl.config.FindDeviceById(command.DeviceID)
 
-	if err != nil {
-		return err
+	if device == nil {
+		return errors.New(fmt.Sprintf("No device with id %s found", command.DeviceID))
 	}
 
-	err = deviceControl.getPowerState(device)
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	return nil
+	return deviceControl.broadlink.Execute(device.Mac, command.Code)
 }
 
 func (deviceControl *DeviceControl) getPowerState(device *Device) error  {
@@ -129,15 +166,17 @@ func (deviceControl *DeviceControl) getPowerState(device *Device) error  {
 		return err
 	}
 
-	var status string
+	state := stateOff
 
 	if powerState {
-		status = "on"
-	} else {
-		status = "off"
+		state = stateOn
 	}
 
-	deviceControl.DeviceLogs = append(deviceControl.DeviceLogs, "State changed: " + device.Name + " power state: " + status)
+	now := time.Now().String()
+	deviceControl.DeviceStateBuffer[now] = DeviceState{
+		Id:    device.ID,
+		State: state,
+	}
 
 	return nil
 }
@@ -155,5 +194,5 @@ func  (deviceControl *DeviceControl) updateAndSaveMatchedDiscoveredDevice(device
 	device.DeviceType = deviceInfo.DeviceType
 	device.Key = deviceInfo.Key
 
-	return deviceControl.config.saveConfiguration(deviceControl.config.fileName)
+	return deviceControl.config.SaveConfiguration(deviceControl.config.fileName)
 }

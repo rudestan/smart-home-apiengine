@@ -1,0 +1,12 @@
+[Unit]
+Description=Smart home Webserver Service
+After=network.target
+
+[Service]
+ExecStart=/home/pi/projects/smh-engine/smh-webserver-arm -c ./config.json -a 192.168.1.18
+WorkingDirectory=/home/pi/projects/smh-engine
+StandardOutput=inherit
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target

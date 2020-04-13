@@ -10,6 +10,7 @@ import (
 	"smh-apiengine/pkg/amqp"
 	"smh-apiengine/pkg/directpublisher"
 	"smh-apiengine/pkg/webserver"
+	"time"
 
 	"github.com/urfave/cli/v2"
 )
@@ -18,6 +19,8 @@ const (
 	defaultProtocol = "http"
 	defaultAddress  = "127.0.0.1"
 	defaultPort     = 8844
+	defaultStartRetires = 5
+	defaultStartRetryInterval = 3 // seconds
 )
 
 func main() {
@@ -167,11 +170,19 @@ func runServer(serverConfig *webserver.ServerConfig, rmqConfig *amqp.Config) err
 
 	directPublisher := directpublisher.NewDirectPublisher(rmqConfig)
 	server := webserver.NewServer(serverConfig, directPublisher)
-	switch serverConfig.Protocol {
-	case "http":
-		server.ServeHTTP()
-	case "https":
-		server.ServeHTTPS()
+	var err error
+
+	for i := 0; i < defaultStartRetires; i++ {
+		if serverConfig.Protocol == "https" {
+			err = server.ServeHTTPS()
+		} else {
+			err = server.ServeHTTP()
+		}
+
+		if err != nil {
+			log.Printf("Failed: %s; attempt %d of %d ...\n", err.Error(), i + 1, defaultStartRetires)
+			time.Sleep(time.Second * defaultStartRetryInterval)
+		}
 	}
 
 	return nil

@@ -47,15 +47,15 @@ func NewServer(serverConfig *ServerConfig, routing interface{}) *server {
 }
 
 // ServeHTTP runs http server
-func (s *server) ServeHTTP() {
+func (s *server) ServeHTTP() error {
 	s.logProcess()
-	log.Println(s.server.ListenAndServe())
+	return s.server.ListenAndServe()
 }
 
 // ServeHTTPS runs https server using provided TLS certificate and key
-func (s *server) ServeHTTPS() {
+func (s *server) ServeHTTPS() error {
 	s.logProcess()
-	log.Println(s.server.ListenAndServeTLS(s.config.TLSCert, s.config.TLSKey))
+	return s.server.ListenAndServeTLS(s.config.TLSCert, s.config.TLSKey)
 }
 
 func (s *server) logProcess()  {

@@ -1,17 +1,16 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"path"
-
-	"github.com/urfave/cli/v2"
 )
 
 func main() {
 	var logFile string
+	var configFile string
 
 	execName, err := os.Executable()
 
@@ -35,23 +34,49 @@ func main() {
 				Destination: &logFile,
 				Aliases:     []string{"l"},
 			},
+			&cli.StringFlag{
+				Name:        "config",
+				Usage:       "Path to JSON configuration with commands and devices",
+				Destination: &configFile,
+				Aliases:     []string{"c"},
+				EnvVars:	 []string{"SMH_CONFIG"},
+				Required:    true,
+			},
 		},
 		Commands: []*cli.Command{
 			{
-				Name:        "create",
-				Usage:       "Creates a an empty configuration JSON file",
-				UsageText:   fmt.Sprintf("%s run [type: \"scenario\" or \"cmd\"] [id of the command]", execName),
-				Description: "Creates an empty configuration JSON file in provided path",
+				Name:        "discover",
+				Usage:       "Discovers the devices",
 				Action: func(c *cli.Context) error {
-					if c.NArg() != 1 {
-						return errors.New("not all required arguments provided")
-					}
-
-					configFilepath := c.Args().First()
-
-					log.Println(configFilepath)
-
-					return nil
+					return CmdDiscover(configFile)
+				},
+			},
+			{
+				Name:        "add_commands",
+				Usage:       "Adds commands",
+				Action: func(c *cli.Context) error {
+					return CmdAddCommands(configFile)
+				},
+			},
+			{
+				Name:        "add_scenarios",
+				Usage:       "Adds scenarios",
+				Action: func(c *cli.Context) error {
+					return CmdAddScenarios(configFile)
+				},
+			},
+			{
+				Name:        "add_controls",
+				Usage:       "Adds controls",
+				Action: func(c *cli.Context) error {
+					return CmdAddControls(configFile)
+				},
+			},
+			{
+				Name:        "run",
+				Usage:       "Runs command or scenario",
+				Action: func(c *cli.Context) error {
+					return CmdRun(configFile)
 				},
 			},
 		},
