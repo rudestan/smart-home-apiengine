@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"smh-apiengine/pkg/broadlinkrm"
+	"github.com/rudestan/broadlinkrm"
 	"time"
 )
 

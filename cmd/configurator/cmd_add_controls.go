@@ -3,8 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/manifoldco/promptui"
 	"smh-apiengine/pkg/devicecontrol"
+
+	"github.com/manifoldco/promptui"
 )
 
 var simpleTemplate = &promptui.SelectTemplates{
@@ -56,23 +57,35 @@ func CmdAddControls(configFile string) error {
 				return err
 			}
 
+			controlItemStateful := false
+			controlItemStatefulAnswer, err := selectSimplePrompt(
+				"Does control item support sates (all commands must use the same device)?",
+				[]string{"Yes", "No"})
+			if err != nil {
+				return err
+			}
+
+			if controlItemStatefulAnswer == "Yes" {
+				controlItemStateful = true
+			}
+
 			fmt.Printf("Creating a \"%s\" control item\n", controlItemName)
 
-			controlItem := config.NewControlItem(controlItemName, controlItemIcon)
+			controlItem := config.NewControlItem(controlItemName, controlItemIcon, controlItemStateful)
 
 			fmt.Println("Now let's add some elements to the control item (commands, scenarios that will be executed)")
 
 			for {
-				elementType, err := selectSimplePrompt(
-					"What you would like to add?",
-					[]string{"Scenario", "Command", "Finish"})
+				elementType := "Command"
 
-				if err != nil {
-					return err
-				}
+				if (!controlItemStateful) {
+					elementType, err = selectSimplePrompt(
+						"What you would like to add?",
+						[]string{"Scenario", "Command"})
 
-				if elementType == "Finish" {
-					break
+					if err != nil {
+						return err
+					}
 				}
 
 				// adding a command
@@ -98,15 +111,16 @@ func CmdAddControls(configFile string) error {
 						return errors.New("device not found")
 					}
 
-					stateOn := false
-					if device.SupportsPowerSwitch() {
-						stateOn, err = getStateOn()
+					state := devicecontrol.StateOn
+
+					if controlItemStateful && device.SupportsPowerSwitch() {
+						state, err = getState()
 						if err != nil {
 							return err
 						}
 					}
 
-					element = config.NewControlItemCommandElement(commandId, stateOn)
+					element = config.NewControlItemCommandElement(commandId, state)
 				} else {
 					scenarioId, err := selectChooseScenario(&config, nil, 5)
 
@@ -118,12 +132,7 @@ func CmdAddControls(configFile string) error {
 						break
 					}
 
-					stateOn, err := getStateOn()
-					if err != nil {
-						return err
-					}
-
-					element = config.NewControlItemScenarioElement(scenarioId, stateOn)
+					element = config.NewControlItemScenarioElement(scenarioId, devicecontrol.StateOn)
 				}
 
 				controlItem.AddControlItemElement(element)
@@ -160,16 +169,16 @@ func CmdAddControls(configFile string) error {
 	}
 }
 
-func getStateOn() (bool, error)  {
-	powerState, err := selectSimplePrompt("Which type of power state is this?", []string{"On", "Off"})
+func getState() (string, error)  {
+	powerState, err := selectSimplePrompt(
+		"Which type of power state is this?",
+		[]string{
+			devicecontrol.StateOn,
+			devicecontrol.StateOff})
 
 	if err != nil {
-		return false, err
+		return devicecontrol.StateOff, err
 	}
 
-	if powerState == "On" {
-		return true, nil
-	}
-
-	return false, nil
+	return powerState, nil
 }

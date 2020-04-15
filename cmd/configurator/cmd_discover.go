@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/manifoldco/promptui"
 	"log"
 	"os"
-	"smh-apiengine/pkg/broadlinkrm"
 	"smh-apiengine/pkg/devicecontrol"
+
+	"github.com/manifoldco/promptui"
+	"github.com/rudestan/broadlinkrm"
 )
 
 type deviceItem struct {

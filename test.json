@@ -1,0 +1,82 @@
+{
+    "devices": {
+        "78:0f:77:17:90:a4": {
+            "name": "Broadlink SC1 Switch (light living room)",
+            "ip": "192.168.1.2",
+            "mac": "78:0f:77:17:90:a4",
+            "key": "cb59c1751fdb5571b33def5fc98b9325",
+            "id": "01000000",
+            "device_type": "0x7547",
+            "device_category": "power_switch",
+            "enabled": true
+        },
+        "78:0f:77:48:77:39": {
+            "name": "Broadlink SP3-EU (lamp living room)",
+            "ip": "192.168.1.22",
+            "mac": "78:0f:77:48:77:39",
+            "key": "00000000000000000000000000000000",
+            "id": "01000000",
+            "device_type": "0x2733",
+            "device_category": "power_switch",
+            "enabled": true
+        },
+        "78:0f:77:b9:5e:87": {
+            "name": "Broadlink RM3 Pro Plus (blaster living room)",
+            "ip": "192.168.1.16",
+            "mac": "78:0f:77:b9:5e:87",
+            "key": "5ce54c465ce54c469258c335c9cb3925",
+            "id": "04000000",
+            "device_type": "0x279d",
+            "device_category": "blaster",
+            "enabled": true
+        }
+    },
+    "intents": null,
+    "commands": {
+        "3149e9a4-9caa-59e9-aaa1-ca8e25d115a1": {
+            "id": "3149e9a4-9caa-59e9-aaa1-ca8e25d115a1",
+            "device_id": "78:0f:77:17:90:a4",
+            "name": "Light On",
+            "code": "01",
+            "intents": null
+        },
+        "37f477c4-039a-5eae-9035-921aa0f294cf": {
+            "id": "37f477c4-039a-5eae-9035-921aa0f294cf",
+            "device_id": "78:0f:77:b9:5e:87",
+            "name": "Audio Philips / Power",
+            "code": "2600a400581c101c100d100d2d2b0f0e0f0e1e1c100d100d100e0f0e100d100d100d1f0d101c0f0e10000aac5a1c101c0f0e100d2d2b0f0e0f0e1e1c100d100e0f0e0f0e100d100d100d1f0d101c100d10000aae581c101c0f0e100d2d2b0f0e0f0e1e1c100d100d100e0f0e100d100d100d1e0e101c100d10000aae581c101c0f0e100d2d2a100e0f0e1e1c100d100d100e0f0e100d100d100d1e0e101c0f0e1000049a04000d0500000000",
+            "intents": null
+        },
+        "8d5482ed-66fe-54e7-aeea-c835fd110156": {
+            "id": "8d5482ed-66fe-54e7-aeea-c835fd110156",
+            "device_id": "78:0f:77:48:77:39",
+            "name": "Lamp Off",
+            "code": "00",
+            "intents": null
+        },
+        "8de8da1f-f0bb-599e-8f74-e59d84782b61": {
+            "id": "8de8da1f-f0bb-599e-8f74-e59d84782b61",
+            "device_id": "78:0f:77:48:77:39",
+            "name": "Lamp On",
+            "code": "01",
+            "intents": null
+        },
+        "e8742484-67b5-545b-84f5-bb91f7c5c744": {
+            "id": "e8742484-67b5-545b-84f5-bb91f7c5c744",
+            "device_id": "78:0f:77:17:90:a4",
+            "name": "Light Off",
+            "code": "00",
+            "intents": null
+        },
+        "f6f110ee-9518-5399-baea-93de5b3357ec": {
+            "id": "f6f110ee-9518-5399-baea-93de5b3357ec",
+            "device_id": "78:0f:77:b9:5e:87",
+            "name": "Projector Benq / Power",
+            "code": "260068000001299214111511141114111411141114111411151114111411141114361435141114111511143514111411151015111411141114351511143514351535143514361435140005fb0001294814000c560001294814000c550001294814000c540001294715000d05",
+            "intents": null
+        }
+    },
+    "scenarios": null,
+    "controls": null,
+    "schedule": null
+}

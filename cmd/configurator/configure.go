@@ -34,7 +34,7 @@ func main() {
 				Destination: &logFile,
 				Aliases:     []string{"l"},
 			},
-			&cli.StringFlag{
+			&cli.PathFlag{
 				Name:        "config",
 				Usage:       "Path to JSON configuration with commands and devices",
 				Destination: &configFile,

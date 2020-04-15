@@ -35,6 +35,11 @@ const (
 	ElementTypeScenario = "scenario"
 )
 
+const (
+	StateOn = "on"
+	StateOff = "off"
+)
+
 // Device struct that stores all required for usage data
 type Device struct {
 	Name       string `json:"name"`
@@ -114,6 +119,7 @@ type ControlItem struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
+	Stateful bool `json:"stateful"`
 	Elements map[string]Element `json:"elements"`
 }
 
@@ -122,7 +128,7 @@ type Element struct {
 	ID string `json:"id"`
 	Target string `json:"target"`
 	Type string `json:"type"`
-	StateOn bool `json:"state_on"`
+	State string `json:"state"`
 }
 
 // Config struct is the root struct that defines a device control struct
@@ -178,23 +184,24 @@ func (ci *ControlItem) AddControlItemElement(el Element)  {
 	ci.Elements[el.ID] = el
 }
 
-func (c *Config) NewControlItem(name string, icon string) ControlItem  {
+func (c *Config) NewControlItem(name string, icon string, stateful bool) ControlItem  {
 	elementId := uuid.NewV4()
 
 	return ControlItem{
 		ID:       elementId.String(),
 		Name:     name,
 		Icon:     icon,
+		Stateful: stateful,
 		Elements: nil,
 	}
 }
 
-func (c *Config) NewControlItemCommandElement(target string, StateOn bool) Element  {
-	return c.newControlItemElement(target, ElementTypeCommand, StateOn)
+func (c *Config) NewControlItemCommandElement(target string, state string) Element  {
+	return c.newControlItemElement(target, ElementTypeCommand, state)
 }
 
-func (c *Config) NewControlItemScenarioElement(target string, StateOn bool) Element  {
-	return c.newControlItemElement(target, ElementTypeScenario, StateOn)
+func (c *Config) NewControlItemScenarioElement(target string, state string) Element  {
+	return c.newControlItemElement(target, ElementTypeScenario, state)
 }
 
 func (c *Config) getUUIDV5(ns string, name string) uuid.UUID  {
@@ -203,14 +210,14 @@ func (c *Config) getUUIDV5(ns string, name string) uuid.UUID  {
 	return uuid.NewV5(nsUUID, name)
 }
 
-func (c *Config) newControlItemElement(target string, elementType string, StateOn bool) Element  {
+func (c *Config) newControlItemElement(target string, elementType string, state string) Element  {
 	elementId := uuid.NewV4()
 
 	return Element{
 		ID:      elementId.String(),
 		Target:  target,
 		Type:    elementType,
-		StateOn: StateOn,
+		State: 	 state,
 	}
 }
 
