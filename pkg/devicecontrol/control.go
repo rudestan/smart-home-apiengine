@@ -129,6 +129,11 @@ func (deviceControl *DeviceControl) FindCommandByID(id string) *Command {
 	return deviceControl.config.FindCommandByID(id)
 }
 
+// FindCommandByID finds Command structure by provided id or error if there is no Command found
+func (deviceControl *DeviceControl) FindControlItemByID(id string) *ControlItem {
+	return deviceControl.config.FindControlItemByID(id)
+}
+
 // FindScenarioByName finds Scenario structure by provided name or error if there is no Scenario found
 func (deviceControl *DeviceControl) FindScenarioByName(name string) (Scenario, error) {
 	return deviceControl.config.findScenarioByName(name)

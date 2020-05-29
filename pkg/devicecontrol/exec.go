@@ -65,6 +65,55 @@ func (deviceControl *DeviceControl) ExecCommandFullCycle(command Command) error 
 	return nil
 }
 
+// ExecControlItem executes the command in full cycle with retry and discover, as well as updating and saving
+// the device data
+func (deviceControl *DeviceControl) ExecControlItem(controlItem *ControlItem, state string) error {
+	var stateEntity *Entity
+
+	if state != "" {
+		stateEntity = controlItem.FindEntityByState(state)
+
+		if stateEntity == nil {
+			return errors.New(fmt.Sprintf("Can not find Entity with %s state", state))
+		}
+	} else {
+		stateEntity = controlItem.FindNextStateEntity()
+
+		if stateEntity == nil {
+			return errors.New("Can not find Entity with next state")
+		}
+	}
+
+	switch stateEntity.Type {
+	case ElementTypeCommand:
+		cmd := deviceControl.config.FindCommandByID(stateEntity.Target)
+		if cmd == nil {
+			return errors.New("command not found")
+		}
+
+		err := deviceControl.ExecCommand(cmd)
+		if err != nil {
+			return err
+		}
+	case ElementTypeScenario:
+		scenario := deviceControl.config.FindScenarioByID(stateEntity.Target)
+		if scenario == nil {
+			return errors.New("scenario not found")
+		}
+
+		err := deviceControl.ExecScenario(scenario)
+		if err != nil {
+			return err
+		}
+	default:
+		return errors.New("unknown element type")
+	}
+
+	controlItem.activeState = stateEntity.State
+
+	return nil
+}
+
 // ExecCommandWithRetryAndDiscover executes the command on passed device, in case of failure calls the execution
 // with device discovering
 func (deviceControl *DeviceControl) execCommandWithRetryAndDiscover(device *Device, command Command) error {

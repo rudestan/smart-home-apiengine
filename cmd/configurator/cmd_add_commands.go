@@ -6,6 +6,31 @@ import (
 	"smh-apiengine/pkg/devicecontrol"
 )
 
+func sortCommands(commands []devicecontrol.Command) []devicecontrol.Command {
+	var n = len(commands)
+	var sorted = false
+
+	for !sorted {
+		swapped := false
+
+		for i := 0; i < n-1; i++ {
+			if commands[i].Name > commands[i+1].Name {
+				commands[i+1], commands[i] = commands[i], commands[i+1]
+
+				swapped = true
+			}
+		}
+
+		if !swapped {
+			sorted = true
+		}
+
+		n = n - 1
+	}
+
+	return commands
+}
+
 func CmdAddCommands(configFile string) error {
 	config, err := devicecontrol.NewConfiguration(configFile)
 
@@ -24,13 +49,25 @@ func CmdAddCommands(configFile string) error {
 	for {
 		fmt.Printf("Adding a command for the device [%s]\n", device.Name)
 		fmt.Print("- Existing commands: -\n\n")
+
+
+
+		var commands []devicecontrol.Command
+
 		for _, existingCmd := range config.Commands {
 			if existingCmd.DeviceID != device.Mac {
 				continue
 			}
 
+			commands = append(commands, existingCmd)
+		}
+
+		commands = sortCommands(commands)
+
+		for _, existingCmd := range commands {
 			fmt.Println("\U000027A4  " + existingCmd.Name)
 		}
+
 		fmt.Println("----------------------")
 
 		var cmd devicecontrol.Command

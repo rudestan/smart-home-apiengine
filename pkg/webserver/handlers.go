@@ -53,6 +53,8 @@ func (apiHandlers *ApiRouteHandlers) InitRoutes()  {
 	apiHandlers.router.HandleFunc("/run/command/{commandId}", apiHandlers.handleRunCommand)
 	apiHandlers.router.HandleFunc("/run/scenario/{scenarioId}", apiHandlers.handleRunScenario)
 	apiHandlers.router.HandleFunc("/run/intent", apiHandlers.handleRunIntent).Methods("POST")
+	apiHandlers.router.HandleFunc("/run/item/{controlItemId}/{state:(?:on|off)}", apiHandlers.handleRunControlItem)
+	apiHandlers.router.HandleFunc("/run/item/{controlItemId}", apiHandlers.handleRunControlItem)
 
 	// Api routes
 	apiHandlers.router.HandleFunc("/controls", apiHandlers.handleControls)
@@ -225,6 +227,41 @@ func (apiHandlers *ApiRouteHandlers) handleRunScenario(w http.ResponseWriter, r 
 	}()
 
 	_, err = io.WriteString(w, NewSuccessResponse("scenario executed", nil))
+
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+// handleRunCommand api action that accepts command id and tries to execute matched command
+func (apiHandlers *ApiRouteHandlers) handleRunControlItem(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+
+	vars := mux.Vars(r)
+	controlItemID := vars["controlItemId"]
+	state := vars["state"]
+	controlItem := apiHandlers.dataProvider.FindControlItemByID(controlItemID)
+
+	if controlItem == nil {
+		_, ioErr := io.WriteString(w, NewErrorResponse(
+			fmt.Sprintf("Control item with id %s was not found", controlItemID)))
+
+		if ioErr != nil {
+			log.Println(ioErr)
+		}
+
+		return
+	}
+
+	go func() {
+		err := apiHandlers.dataProvider.ExecControlItem(controlItem, state)
+
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	_, err := io.WriteString(w, NewSuccessResponse("control item executed", nil))
 
 	if err != nil {
 		log.Println(err)

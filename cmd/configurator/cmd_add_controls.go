@@ -76,7 +76,7 @@ func CmdAddControls(configFile string) error {
 				}
 
 				// adding a command
-				var element devicecontrol.Element
+				var entity devicecontrol.Entity
 
 				if elementType == "Command" {
 					commandId, err := selectChooseCommand(&config, nil, 5)
@@ -98,15 +98,15 @@ func CmdAddControls(configFile string) error {
 						return errors.New("device not found")
 					}
 
-					stateOn := false
+					state := ""
 					if device.SupportsPowerSwitch() {
-						stateOn, err = getStateOn()
+						state, err = getStateOn()
 						if err != nil {
 							return err
 						}
 					}
 
-					element = config.NewControlItemCommandElement(commandId, stateOn)
+					entity = config.NewControlItemCommandEntity(commandId, state)
 				} else {
 					scenarioId, err := selectChooseScenario(&config, nil, 5)
 
@@ -123,10 +123,10 @@ func CmdAddControls(configFile string) error {
 						return err
 					}
 
-					element = config.NewControlItemScenarioElement(scenarioId, stateOn)
+					entity = config.NewControlItemScenarioEntity(scenarioId, stateOn)
 				}
 
-				controlItem.AddControlItemElement(element)
+				controlItem.AddControlItemStateEntity(entity)
 
 			}
 
@@ -160,16 +160,17 @@ func CmdAddControls(configFile string) error {
 	}
 }
 
-func getStateOn() (bool, error)  {
-	powerState, err := selectSimplePrompt("Which type of power state is this?", []string{"On", "Off"})
+func getStateOn() (string, error)  {
+	state, err := selectSimplePrompt("Which type of power state is this?", []string{"Stateless", "On", "Off"})
 
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	if powerState == "On" {
-		return true, nil
+	switch state {
+	case "On": return devicecontrol.StateOn, nil
+	case "Off": return devicecontrol.StateOff, nil
 	}
 
-	return false, nil
+	return devicecontrol.StateNA, nil
 }

@@ -24,6 +24,12 @@ const (
 )
 
 const (
+	StateOn = "on"
+	StateOff = "off"
+	StateNA = "na"
+)
+
+const (
 	NsUUIDCommand = "smart-home:command:"
 	NsUUIDScenario = "smart-home:scenario:"
 	NsUUIDElement = "smart-home:element:"
@@ -106,7 +112,7 @@ type Control struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"` // icon for control e.g. in tabs
-	Items map[string]ControlItem `json:"items"`
+	Items map[string]*ControlItem `json:"items"`
 }
 
 // ControlItem struct represents some virtual control button
@@ -114,15 +120,16 @@ type ControlItem struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
-	Elements map[string]Element `json:"elements"`
+	StateEntities []Entity `json:"state_entities"`
+	activeState string
 }
 
-// Element struct that represents an element from the configuration, either command or scenario
-type Element struct {
+// Entity struct that represents an element from the configuration, either command or scenario
+type Entity struct {
 	ID string `json:"id"`
 	Target string `json:"target"`
 	Type string `json:"type"`
-	StateOn bool `json:"state_on"`
+	State string `json:"state"`
 }
 
 // Config struct is the root struct that defines a device control struct
@@ -140,7 +147,7 @@ type Config struct {
 // ScheduleItem struct represents the schedule item that can be executed at certain times or some interval etc.
 type ScheduleItem struct {
 	ExecutionTimes map[string]string `json:"execution_times"`
-	Element Element `json:"element"`
+	Entity Entity `json:"entity"`
 }
 
 func (c *Config) AddControl(ctrl Control)  {
@@ -162,39 +169,67 @@ func (c *Config) NewControl(name string, icon string) Control  {
 	}
 }
 
-func (ctrl *Control) AddControlItem(ci ControlItem)  {
+func (ctrl *Control) AddControlItem(ci *ControlItem)  {
 	if ctrl.Items == nil {
-		ctrl.Items = make(map[string]ControlItem)
+		ctrl.Items = make(map[string]*ControlItem)
 	}
 
 	ctrl.Items[ci.ID] = ci
 }
 
-func (ci *ControlItem) AddControlItemElement(el Element)  {
-	if ci.Elements == nil {
-		ci.Elements = make(map[string]Element)
-	}
-
-	ci.Elements[el.ID] = el
+func (ci *ControlItem) AddControlItemStateEntity(et Entity)  {
+	ci.StateEntities = append(ci.StateEntities, et)
 }
 
-func (c *Config) NewControlItem(name string, icon string) ControlItem  {
+func (ci *ControlItem) FindEntityByState(state string) *Entity {
+	for _, entity := range ci.StateEntities {
+		if entity.State == state {
+			return &entity
+		}
+	}
+
+	return nil
+}
+
+func (ci *ControlItem) FindNextStateEntity() *Entity {
+	if len(ci.StateEntities) == 0 {
+		return nil
+	}
+
+	if ci.activeState == "" || ci.activeState == "na" {
+		return &ci.StateEntities[0]
+	}
+
+	for idx, entity := range ci.StateEntities {
+		if ci.activeState == entity.State {
+			if idx+1 < len(ci.StateEntities) {
+				return &ci.StateEntities[idx+1]
+			} else if idx+1 >= len(ci.StateEntities) {
+				return &ci.StateEntities[0]
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) NewControlItem(name string, icon string) *ControlItem  {
 	elementId := uuid.NewV4()
 
-	return ControlItem{
+	return &ControlItem{
 		ID:       elementId.String(),
 		Name:     name,
 		Icon:     icon,
-		Elements: nil,
+		StateEntities: nil,
 	}
 }
 
-func (c *Config) NewControlItemCommandElement(target string, StateOn bool) Element  {
-	return c.newControlItemElement(target, ElementTypeCommand, StateOn)
+func (c *Config) NewControlItemCommandEntity(target string, state string) Entity  {
+	return c.newControlItemStateEntity(target, ElementTypeCommand, state)
 }
 
-func (c *Config) NewControlItemScenarioElement(target string, StateOn bool) Element  {
-	return c.newControlItemElement(target, ElementTypeScenario, StateOn)
+func (c *Config) NewControlItemScenarioEntity(target string, state string) Entity  {
+	return c.newControlItemStateEntity(target, ElementTypeScenario, state)
 }
 
 func (c *Config) getUUIDV5(ns string, name string) uuid.UUID  {
@@ -203,14 +238,14 @@ func (c *Config) getUUIDV5(ns string, name string) uuid.UUID  {
 	return uuid.NewV5(nsUUID, name)
 }
 
-func (c *Config) newControlItemElement(target string, elementType string, StateOn bool) Element  {
+func (c *Config) newControlItemStateEntity(target string, elementType string, state string) Entity  {
 	elementId := uuid.NewV4()
 
-	return Element{
+	return Entity{
 		ID:      elementId.String(),
 		Target:  target,
 		Type:    elementType,
-		StateOn: StateOn,
+		State: 	 state,
 	}
 }
 
@@ -239,6 +274,16 @@ func (c *Config) FindDeviceById(id string) *Device {
 func (c *Config) FindCommandByID(id string) *Command {
 	if cmd, ok := c.Commands[id]; ok {
 		return &cmd
+	}
+
+	return nil
+}
+
+func (c *Config) FindControlItemByID(id string) *ControlItem {
+	for _, control := range c.Controls {
+		if controlItem, ok := control.Items[id]; ok {
+			return controlItem
+		}
 	}
 
 	return nil
