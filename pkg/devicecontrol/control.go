@@ -1,11 +1,12 @@
 package devicecontrol
 
 import (
+	"log"
+	"strings"
+
+	"github.com/rudestan/broadlinkrm"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cast"
-	"log"
-	"smh-apiengine/pkg/broadlinkrm"
-	"strings"
 )
 
 type DeviceControl struct {

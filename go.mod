@@ -7,7 +7,7 @@ require (
 	github.com/gobwas/ws v1.0.3
 	github.com/gorilla/mux v1.7.4
 	github.com/manifoldco/promptui v0.7.0
-	github.com/rudestan/broadlinkrm v0.0.0-20200410212032-aebc8af915bc
+	github.com/rudestan/broadlinkrm v0.0.0-20200413220232-7261e7ea4bd1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cast v1.3.0
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
